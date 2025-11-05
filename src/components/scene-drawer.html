@@ -1,0 +1,56 @@
+<!-- 底部抽屉 -->
+<div id="scene-drawer" class="scene-drawer">
+  <button class="drawer-close" data-close-drawer>&times;</button>
+  <div class="drawer-content">
+    <img data-scene-img src="" alt="scene" class="drawer-image" />
+    <div class="drawer-text">
+      <h2 data-scene-title>景点标题</h2>
+      <p data-scene-desc>这里将展示该景点的文化信息与诗词。</p>
+    </div>
+  </div>
+</div>
+
+<style>
+.scene-drawer {
+  position: fixed;
+  bottom: -100%;
+  left: 0;
+  width: 100%;
+  background: rgba(15, 15, 15, 0.95);
+  border-top: 2px solid #ffd36b;
+  color: #fff;
+  z-index: 60;
+  transition: bottom 0.5s ease-in-out;
+  padding: 1.5rem;
+}
+.scene-drawer.open {
+  bottom: 0;
+}
+.drawer-content {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+.drawer-image {
+  width: 160px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #f0d090;
+}
+.drawer-text h2 {
+  color: #ffd36b;
+  font-size: 1.5rem;
+  margin-bottom: 0.5rem;
+}
+.drawer-close {
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  background: none;
+  border: none;
+  color: #ffd36b;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+</style>

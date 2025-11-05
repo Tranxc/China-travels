@@ -1,0 +1,16 @@
+{
+  "name": "china-travels",
+  "version": "1.0.0",
+  "description": "诗意山河 · 中国文化探索平台",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "vite": "^7.1.12"
+  }
+}

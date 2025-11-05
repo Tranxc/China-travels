@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>山河行吟 · 诗意山河</title>
+  <!-- 引入中文书法字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="../styles/culture.css" />
+</head>
+<body>
+  <header class="navbar">
+    <div class="logo">诗意山河</div>
+    <nav>
+      <a href="../../index.html">首页</a>
+      <a href="#" class="active">山河行吟</a>
+      <a href="#">登录</a>
+    </nav>
+  </header>
+
+  <main class="scenes">
+    <section class="scene" style="--bg:url('/assets/images/desert.jpg')">
+      <div class="overlay">
+        <h1>万里河山 · 一卷诗意</h1>
+        <h3 class="place">内蒙古·巴丹吉林</h3>
+        <p class="poem">大漠孤烟直，长河落日圆</p>
+      </div>
+    </section>
+
+    <section class="scene" style="--bg:url('/assets/images/mountain.jpeg')">
+      <div class="overlay">
+        <h1>西川雪岭</h1>
+        <h3 class="place">四川·贡嘎山</h3>
+        <p class="poem">蜀道之难，难于上青天</p>
+      </div>
+    </section>
+
+    <section class="scene" style="--bg:url('/assets/images/wuzhen.avif')">
+      <div class="overlay">
+        <h1>江南水巷</h1>
+        <h3 class="place">浙江·乌镇</h3>
+        <p class="poem">小桥流水人家，古道西风瘦马</p>
+      </div>
+    </section>
+
+    <section class="scene" style="--bg:url('/assets/images/guilin.png')">
+      <div class="overlay">
+        <h1>桂林山水</h1>
+        <h3 class="place">广西·漓江</h3>
+        <p class="poem">江作青罗带，山如碧玉簪</p>
+      </div>
+    </section>
+
+    <section class="scene" style="--bg:url('/assets/images/terrace.jpg')">
+      <div class="overlay">
+        <h1>云贵梯田</h1>
+        <h3 class="place">云南·元阳</h3>
+        <p class="poem">千层叠翠起云烟，万壑流金绕人间</p>
+      </div>
+
+    </section>
+     <section class="scene" style="--bg:url('/assets/images/sichuan.jpg')">
+      <div class="overlay">
+        <h1>九寨沟</h1>
+        <h3 class="place">四川·阿坝</h3>
+        <p class="poem">江作青罗带，山如碧玉簪</p>
+      </div>
+    </section>
+     <section class="scene" style="--bg:url('/assets/images/zhangjiajie.jpg')">
+      <div class="overlay">
+        <h1>张家界峰林</h1>
+        <h3 class="place">湖南·张家界</h3>
+        <p class="poem">千峰林立接云霄，奇石幽谷映碧涛</p>
+      </div>
+    </section>
+     <section class="scene" style="--bg:url('/assets/images/lasa.jpg')">
+      <div class="overlay">
+        <h1>布达拉宫</h1>
+        <h3 class="place">西藏·拉萨</h3>
+        <p class="poem">风拂雪岭天为帐，云走高原地作琴</p>
+      </div>
+    </section>
+  </main>
+
+  <footer>© 2025 诗意山河 | 山水有诗意</footer>
+
+  <script type="module">
+    const scenes = document.querySelectorAll('.scene');
+    let lock = false, idx = 0;
+
+    addEventListener('wheel', (e) => {
+      if (lock) return;
+      lock = true;
+
+      if (e.deltaY > 0 && idx < scenes.length - 1) idx++;
+      else if (e.deltaY < 0 && idx > 0) idx--;
+
+      scenes[idx].scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => (lock = false), 900);
+    }, { passive: true });
+  </script>
+</body>
+</html>

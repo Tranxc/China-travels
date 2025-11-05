@@ -301,36 +301,36 @@ export class EmailService {
 
 ### 👥 明确的文件分工表
 
-| 文件/模块 | 负责人 | 主要职责 | 文件数量 |
-|----------|--------|----------|----------|
-| **🗺️ 地图相关** | **成员 A** | 地图API集成、交互逻辑 | **4个文件** |
-| `src/modules/map.js` | 成员 A | 地图初始化和核心功能 | |
-| `src/modules/mapEvents.js` | 成员 A | 地图事件处理逻辑 | |
-| `src/styles/map.css` | 成员 A | 地图容器和控件样式 | |
-| `src/components/map-toolbar.html` | 成员 A | 地图工具栏HTML结构 | |
-| **🎨 UI/UX相关** | **成员 B** | 页面设计、交互体验 | **7个文件** |
-| `src/modules/ui.js` | 成员 B | UI状态管理和页面切换 | |
-| `src/modules/api.js` | 成员 B | 前端API调用封装 | |
-| `src/styles/main.css` | 成员 B | 主样式和全局样式 | |
-| `src/styles/pages.css` | 成员 B | 页面布局和样式 | |
-| `src/styles/components.css` | 成员 B | 组件样式和动画 | |
-| `src/components/home-page.html` | 成员 B | 首页HTML结构 | |
-| `src/components/culture-page.html` | 成员 B | 文化介绍页HTML | |
-| `src/components/auth-modal.html` | 成员 B | 登录注册弹窗HTML | |
-| `src/components/scene-drawer.html` | 成员 B | 景点详情抽屉HTML | |
-| **⚙️ 后端相关** | **成员 C** | 服务端逻辑、数据管理 | **8个文件** |
-| `functions/[[path]].js` | 成员 C | 路由入口和整合 | |
-| `functions/api/auth.js` | 成员 C | 用户认证API逻辑 | |
-| `functions/api/scenes.js` | 成员 C | 景点数据API逻辑 | |
-| `functions/api/comments.js` | 成员 C | 评论系统API逻辑 | |
-| `functions/api/favorites.js` | 成员 C | 收藏功能API逻辑 | |
-| `functions/services/database.js` | 成员 C | 数据库操作封装 | |
-| `functions/services/email.js` | 成员 C | 邮件服务封装 | |
-| `functions/utils/auth.js` | 成员 C | 认证工具函数 | |
-| **🔧 共同维护** | **全体** | 项目配置和入口文件 | **3个文件** |
-| `index.html` | 全体 | 主HTML入口 (引入各模块) | |
-| `src/main.js` | 全体 | JS主入口 (整合各模块) | |
-| `vite.config.js` | 成员 B | Vite配置和代理设置 | |
+| 文件/模块                          | 负责人     | 主要职责                | 文件数量    |
+| ---------------------------------- | ---------- | ----------------------- | ----------- |
+| **🗺️ 地图相关**                     | **成员 A** | 地图API集成、交互逻辑   | **4个文件** |
+| `src/modules/map.js`               | 成员 A     | 地图初始化和核心功能    |             |
+| `src/modules/mapEvents.js`         | 成员 A     | 地图事件处理逻辑        |             |
+| `src/styles/map.css`               | 成员 A     | 地图容器和控件样式      |             |
+| `src/components/map-toolbar.html`  | 成员 A     | 地图工具栏HTML结构      |             |
+| **🎨 UI/UX相关**                    | **成员 B** | 页面设计、交互体验      | **7个文件** |
+| `src/modules/ui.js`                | 成员 B     | UI状态管理和页面切换    |             |
+| `src/modules/api.js`               | 成员 B     | 前端API调用封装         |             |
+| `src/styles/main.css`              | 成员 B     | 主样式和全局样式        |             |
+| `src/styles/pages.css`             | 成员 B     | 页面布局和样式          |             |
+| `src/styles/components.css`        | 成员 B     | 组件样式和动画          |             |
+| `src/components/home-page.html`    | 成员 B     | 首页HTML结构            |             |
+| `src/components/culture-page.html` | 成员 B     | 文化介绍页HTML          |             |
+| `src/components/auth-modal.html`   | 成员 B     | 登录注册弹窗HTML        |             |
+| `src/components/scene-drawer.html` | 成员 B     | 景点详情抽屉HTML        |             |
+| **⚙️ 后端相关**                     | **成员 C** | 服务端逻辑、数据管理    | **8个文件** |
+| `functions/[[path]].js`            | 成员 C     | 路由入口和整合          |             |
+| `functions/api/auth.js`            | 成员 C     | 用户认证API逻辑         |             |
+| `functions/api/scenes.js`          | 成员 C     | 景点数据API逻辑         |             |
+| `functions/api/comments.js`        | 成员 C     | 评论系统API逻辑         |             |
+| `functions/api/favorites.js`       | 成员 C     | 收藏功能API逻辑         |             |
+| `functions/services/database.js`   | 成员 C     | 数据库操作封装          |             |
+| `functions/services/email.js`      | 成员 C     | 邮件服务封装            |             |
+| `functions/utils/auth.js`          | 成员 C     | 认证工具函数            |             |
+| **🔧 共同维护**                     | **全体**   | 项目配置和入口文件      | **3个文件** |
+| `index.html`                       | 全体       | 主HTML入口 (引入各模块) |             |
+| `src/main.js`                      | 全体       | JS主入口 (整合各模块)   |             |
+| `vite.config.js`                   | 成员 B     | Vite配置和代理设置      |             |
 
 ### 🔄 模块间协作方式
 

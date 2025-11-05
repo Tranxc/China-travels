@@ -1,0 +1,128 @@
+:root {
+  --brand: #ffd97a;
+  --text: #f7f7f7;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: 'Noto Serif SC', serif; background: #000; color: var(--text); }
+
+/* 顶部导航 */
+.navbar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 64px;
+  background: rgba(20,20,20,0.55);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 72px;
+  z-index: 10;
+}
+.logo {
+  color: var(--brand);
+  font-weight: 700;
+  font-family: 'Zhi Mang Xing', 'Ma Shan Zheng', serif;
+  font-size: 2rem;
+  letter-spacing: 2px;
+}
+.navbar nav { display: flex; gap: 28px; }
+.navbar nav a {
+  color: #e9e9e9;
+  text-decoration: none;
+  opacity: .9;
+  transition: .25s ease;
+}
+.navbar nav a:hover,
+.navbar nav a.active { color: var(--brand); }
+
+/* 英雄区背景 */
+.hero {
+  position: relative;
+  height: 100vh;
+  background: url('/assets/images/spenser-sembrat-euS9sAMjuRs-unsplash.jpg') no-repeat center / cover fixed;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+.hero::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+}
+
+/* 中心文字 */
+.hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  padding: 0 24px;
+  animation: fadeUp 1.2s ease;
+  text-align: center;
+}
+
+.hero-content h1 {
+  font-family: 'Zhi Mang Xing', 'Ma Shan Zheng', 'Noto Serif SC', serif;
+  font-size: clamp(3rem, 5vw, 4rem);
+  color: var(--brand);
+  letter-spacing: 2px;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+.hero-content p {
+  font-size: 1.2rem;
+  opacity: .9;
+  letter-spacing: 1px;
+  margin: 0;
+}
+
+.buttons {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.btn {
+  text-decoration: none;
+  padding: 12px 26px;
+  border-radius: 8px;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.btn.explore {
+  background-color: var(--brand);
+  color: #000;
+  font-weight: 600;
+}
+.btn.explore:hover {
+  background-color: #ffeaad;
+}
+
+.btn.login {
+  border: 1px solid var(--brand);
+  color: var(--brand);
+}
+.btn.login:hover {
+  background-color: rgba(255,255,255,0.1);
+}
+
+/* 动画 */
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(30px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* 页脚 */
+footer {
+  text-align: center;
+  padding: 20px;
+  font-size: 0.9rem;
+  opacity: .85;
+  background: rgba(20,20,20,.45);
+}
