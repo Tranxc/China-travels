@@ -1,0 +1,104 @@
+/* ========== 首页 hero 区域 ========== */
+.hero-content {
+  position: relative;
+  top: 40%;
+  text-align: center;
+  transform: translateY(-50%);
+}
+
+.hero-content h1 {
+  font-size: 3.5rem;
+  font-weight: bold;
+  background: linear-gradient(90deg, #ffe8a3, #f0c86f);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  text-shadow: 0 4px 20px rgba(240, 200, 100, 0.3);
+  letter-spacing: 2px;
+  animation: fadeInDown 1.5s ease;
+}
+
+.hero-content p {
+  margin-top: 20px;
+  font-size: 1.2rem;
+  color: rgba(255, 255, 255, 0.85);
+  animation: fadeIn 2s ease;
+}
+
+/* ========== 按钮动画 ========== */
+.hero-content button {
+  margin-top: 30px;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 25px;
+  background: linear-gradient(90deg, #b99152, #e4c180);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.hero-content button:hover {
+  background: linear-gradient(90deg, #e4c180, #b99152);
+  transform: translateY(-5px);
+  box-shadow: 0 6px 20px rgba(255, 220, 100, 0.3);
+}
+
+/* ========== 动画效果 ========== */
+@keyframes fadeInDown {
+  from {
+    opacity: 0;
+    transform: translateY(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ========== 文化交互页 ========== */
+.culture-container {
+  width: 80%;
+  margin: 120px auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 40px;
+  animation: fadeIn 2s ease;
+}
+
+.culture-card {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  padding: 25px;
+  backdrop-filter: blur(10px);
+  transition: transform 0.4s ease, box-shadow 0.4s ease, background 0.4s ease;
+}
+
+.culture-card:hover {
+  transform: translateY(-10px);
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.25);
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.culture-card h3 {
+  color: #ffe8a3;
+  font-size: 1.4rem;
+  margin-bottom: 10px;
+}
+
+.culture-card p {
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.6;
+  font-size: 1rem;
+}

@@ -1,0 +1,1138 @@
+body, html {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* #map-container {
+  width: 100%;
+  height: 100%;
+} */
+
+.map-toolbar {
+  position: absolute;
+  top: 10px;
+  right: 10px;   /* ✅ 改这里，从 left 改成 right */
+  z-index: 1000;
+  background: #fff;
+  border-radius: 8px;
+  padding: 6px 10px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+
+.map-toolbar button {
+  background: #e59604;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.map-toolbar button:hover {
+  background: #e59604;
+}
+
+#info-panel {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: rgba(255,255,255,0.96);
+  border-top: 1px solid #ddd;
+  padding: 10px 20px;
+  font-size: 14px;
+  z-index: 999;
+}
+#info-panel h4 {
+  margin: 4px 0 6px 0;
+}
+.topbar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 60px;
+  background: #fff;
+  border-bottom: 1px solid #eee;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 20px;
+  z-index: 1000;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.08);
+   flex-wrap: nowrap; /* 确保不换行 */
+}
+
+/* 左侧标题 + 按钮 */
+.topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  flex: 1;           /* ✅ 让左侧占据可伸缩空间 */
+  min-width: 0;      /* ✅ 防止搜索栏撑爆 */
+}
+
+.brand {
+  font-size: 20px;
+  color: #e59604;
+  margin: 0;
+}
+
+.toolbar-buttons {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toolbar-buttons input {
+  flex: 1;
+  min-width: 120px;
+  max-width: 240px;
+  padding: 6px 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+.toolbar-buttons button {
+  padding: 6px 12px;
+  background: #e59604;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.toolbar-buttons button:hover {
+  background: #e59604;
+}
+
+/* 右侧头像与菜单 */
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;     /* ✅ 防止被压缩 */
+  margin-right: 40px;
+}
+
+.avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  cursor: pointer;
+  border: 2px solid #ddd;
+}
+
+.user-menu button {
+  background: #f2f2f2;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+.user-menu button:hover {
+  background: #e0e0e0;
+}
+
+/* 防止导航栏遮住地图
+#map-container {
+  position: absolute;
+  top: 60px;
+  left: 0;
+  width: 100%;
+  height: calc(100vh - 60px);
+} */
+
+#marker-info-panel {
+  position: absolute;
+  top: 60px;                     /* 顶部栏高度 */
+  right: 0;
+  width: 280px;
+  height: calc(100vh - 60px);
+  background: #fff;
+  border-left: 1px solid #eee;
+  box-shadow: -2px 0 6px rgba(0,0,0,0.05);
+  padding: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  overflow-y: auto;
+  transition: transform 0.3s ease;
+}
+
+#marker-info-panel.hidden {
+  transform: translateX(100%);
+}
+
+#marker-info-panel h3 {
+  color: #c59b34 ;
+  margin-top: 0;
+  font-size: 18px;
+}
+
+#marker-info-panel p {
+  font-size: 14px;
+  color: #333;
+  line-height: 1.6;
+}
+
+/* 信息窗标题与关闭按钮区域 */
+.info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+#close-info-btn {
+  background: transparent;
+  border: none;
+  color: #999;
+  font-size: 18px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+#close-info-btn:hover {
+  color: #c59b34 ;
+}
+
+.detail-btn {
+  margin-top: 20px;
+  padding: 8px 14px;
+  background: #c59b34 ;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  align-self: flex-start;
+  transition: background 0.2s;
+}
+
+.detail-btn:hover {
+  background: #c59b34 ;
+}
+
+/* 显示状态 */
+#detail-panel.show {
+  transform: translateY(0);
+}
+
+/* 隐藏状态 */
+#detail-panel.hidden {
+  transform: translateY(100%);
+}
+
+/* 顶部标题栏 */
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+  padding-bottom: 12px;
+  margin-bottom: 20px;
+}
+
+.detail-header h2 {
+  color: #c59b34 ;
+  margin: 0;
+}
+
+#close-detail-btn {
+  background: #c59b34 ;
+  border: none;
+  color: #fff;
+  margin-right:40px ;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 18px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+#close-detail-btn:hover {
+  background: #c59b34 ;
+}
+/* ====== 轮播图区域 ====== */
+.carousel-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  height: 400px;
+  margin: 0 auto;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s ease;
+  width: 100%;
+  height: 100%;
+}
+
+.carousel-item {
+  min-width: 100%;
+  height: 100%;
+  position: relative;
+  cursor: pointer;
+}
+
+.carousel-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 12px;
+  transition: transform 0.3s ease;
+}
+
+.carousel-item img:hover {
+  transform: scale(1.03);
+}
+
+.carousel-caption {
+  text-align: center;
+  margin-top: 14px;
+  font-size: 18px;
+  color: #c59b34 ;
+  font-weight: 500;
+}
+
+/* 箭头按钮 */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(0,0,0,0.4);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  font-size: 24px;
+  cursor: pointer;
+  transition: background 0.2s;
+  z-index: 10;
+}
+.carousel-arrow:hover {
+  background: rgba(0,0,0,0.6);
+}
+.carousel-arrow.left { left: 10px; }
+.carousel-arrow.right { right: 10px; }
+.like-section {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+}
+
+.like-btn, .dislike-btn {
+  border: none;
+  padding: 10px 18px;
+  font-size: 18px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: transform 0.2s ease, background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.like-btn {
+  background: #e7e2ff;
+  color: #c59b34 ;
+}
+
+.like-btn:hover {
+  background: #c5b489 ;
+  transform: scale(1.05);
+}
+
+.dislike-btn {
+  background: #f5e6e6;
+  color: #d96b6b;
+}
+
+.dislike-btn:hover {
+  background: #f2caca;
+  transform: scale(1.05);
+}
+
+.like-btn.active, .dislike-btn.active {
+  transform: scale(1.15);
+  font-weight: bold;
+}
+/* ====== 点赞/点踩 +1 动画 ====== */
+.floating-feedback {
+  position: absolute;
+  color: #c59b34 ;
+  font-weight: bold;
+  font-size: 18px;
+  animation: floatUp 0.8s ease-out forwards;
+  pointer-events: none;
+  user-select: none;
+  z-index: 9999;
+}
+
+@keyframes floatUp {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-40px);
+  }
+}
+
+.interest-btn {
+  display: block;
+  margin: 12px auto;
+  padding: 8px 16px;
+  background: #fff;
+  border: 1px solid #c59b34 ;
+  border-radius: 6px;
+  color: #c59b34 ;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.interest-btn:hover {
+  background: #c59b34 ;
+  color: #fff;
+}
+
+#marker-info-panel .detail-btn {
+  display: block;
+  margin: 16px auto;
+  padding: 8px 16px;
+  background-color: #c59b34 ;
+  border: none;
+  border-radius: 6px;
+  color: white;
+  font-weight: 600;
+  cursor: pointer;
+  transition: 0.2s;
+}
+#marker-info-panel .detail-btn:hover {
+  background-color: #c59b34 ;
+}
+/* ======== 古风地图整体布局 ======== */
+body {
+  background: linear-gradient(180deg, #f8f2da 0%, #f1e4b8 100%);
+  background-attachment: fixed;
+  background-size: cover;
+  font-family: "PingFang SC", "Microsoft YaHei", serif;
+}
+
+/* 地图容器外层，用于居中和阴影 */
+.map-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 120px);
+  padding-top: 60px;
+}
+
+/* 地图本身尺寸 */
+#map-container {
+  width: 70vw;
+  height: 75vh;
+  border-radius: 16px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  overflow: hidden;
+  border: 3px solid #d4b76a; /* 金黄色描边 */
+  background: #f7eecb; /* 底色黄 */
+}
+
+/* 古风文字与控件微调 */
+.topbar, .toolbar-buttons button {
+  background-color: rgba(255, 248, 225, 0.8);
+  color: #704c1e;
+  border: 1px solid #d4b76a;
+  border-radius: 6px;
+  font-weight: 600;
+}
+button:hover {
+  background-color: #f2d98c;
+  color: #4b3412;
+}
+/* ========== 古风背景层 ========== */
+body {
+  position: relative;
+  background: linear-gradient(180deg, #f8f2da 0%, #f1e4b8 100%);
+  background-attachment: fixed;
+  font-family: "PingFang SC", "Microsoft YaHei", "STKaiti", serif;
+  overflow-x: hidden;
+}
+
+/* 背景山水纹理层（半透明宣纸效果） */
+body::before {
+  content: "";
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-image: url("../assets/bg-texture.png"); /* ✅ 山水画/宣纸纹理 */
+  background-size: cover;
+  background-position: center;
+  opacity: 0.2; /* 调整透明度 */
+  pointer-events: none; /* 不影响操作 */
+  z-index: -1; /* 放在所有元素下 */
+}
+
+/* 地图整体容器 */
+.map-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: calc(100vh - 120px);
+  padding-top: 60px;
+}
+
+/* 地图主体 */
+#map-container {
+  width: 70vw;
+  height: 75vh;
+  border-radius: 18px;
+  border: 3px solid #d4b76a;
+  background: #f7eecb;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  overflow: hidden;
+  position: relative;
+  z-index: 1;
+}
+
+/* 顶栏微调，柔和金色调 */
+.topbar, .toolbar-buttons button {
+  background-color: rgba(255, 248, 225, 0.85);
+  color: #704c1e;
+  border: 1px solid #d4b76a;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+button:hover {
+  background-color: #f2d98c;
+  color: #4b3412;
+}
+
+/* 自动补全列表 */
+.suggest-list {
+  position: absolute;
+  top: 35px;
+  left: 0;
+  width: 200px;
+  background: white;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  z-index: 1000;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
+
+.suggest-list li {
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.suggest-list li:hover {
+  background: #f2eaff;
+}
+
+/* 让搜索框容器成为定位上下文 */
+.toolbar-buttons {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+/* 自动补全列表样式 */
+.suggest-list {
+  position: absolute;
+  top: 100%;           /* ✅ 紧贴搜索框下方 */
+  left: 0;
+  width: 180px;        /* 可与搜索框宽度相同 */
+  background: #fff;
+  border: 1px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 6px 6px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  z-index: 9999;
+}
+
+.suggest-list li {
+  padding: 8px 12px;
+  cursor: pointer;
+  font-size: 14px;
+  color: #333;
+}
+
+.suggest-list li:hover {
+  background-color: #f3f0ff; /* 柔和的淡紫背景 */
+}
+
+.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+#search-input {
+  border-radius: 6px 6px 0 0;
+}
+
+/* === 搜索帮助弹窗 === */
+#help-modal {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 3000;
+}
+
+#help-modal.hidden {
+  display: none;
+}
+
+.help-content {
+  background: #fffbe6;
+  border: 2px solid #e2c675;
+  border-radius: 12px;
+  padding: 24px 28px;
+  max-width: 420px;
+  line-height: 1.7;
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.2);
+  text-align: left;
+  animation: fadeIn 0.25s ease-out;
+}
+
+.help-content h3 {
+  margin-top: 0;
+  color: #8b6220;
+  font-size: 18px;
+  margin-bottom: 10px;
+}
+
+.help-content button {
+  margin-top: 16px;
+  background: #c59b34 ;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+
+.help-content button:hover {
+  background: #c59b34 ;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+#help-btn {
+  display: flex;               /* ✅ 使用 Flex 居中 */
+  align-items: center;
+  justify-content: center;
+  background: none;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  width: 26px;
+  height: 26px;
+  font-weight: bold;
+  font-size: 15px;
+  line-height: 1;              /* 防止文字偏移 */
+  cursor: pointer;
+  margin-left: 6px;
+  transition: 0.2s;
+  color: #444;
+  padding: 0;                  /* ✅ 去掉默认内边距 */
+  transform: translateX(2px);
+  padding-left: 7px;  /* ✅ 向右平移约 1px */
+  font-family: "Segoe UI Symbol", "Arial", sans-serif; /* ✅ 英文字体渲染更均匀 */
+}
+
+#help-btn:hover {
+  background: #f4f0ff;
+  border-color: #c59b34 ;
+  color: #c59b34 ;
+}
+
+/* === 通用弹窗基础样式 === */
+#marker-info-panel{
+  position: fixed;
+  top: 50%;
+  right: 40px;
+  transform: translateY(-50%);
+  width: 340px;
+  max-height: 80vh;
+  background: #fdf8e7; /* ✅ 柔和米黄色 */
+  border: 2px solid #d4b574; /* ✅ 仿古金边 */
+  border-radius: 16px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  padding: 18px 22px;
+  overflow-y: auto;
+  z-index: 2000;
+  transition: all 0.3s ease;
+  font-family: "PingFang SC", "Noto Serif SC", serif;
+  color: #443322;
+}
+
+
+
+
+/* 隐藏与显示动画 */
+#marker-info-panel.hidden {
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%) translateX(30px);
+}
+#marker-info-panel.show {
+  opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+/* === 信息标题 === */
+.info-header, .detail-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #e7d9aa;
+  padding-bottom: 6px;
+}
+
+.info-header h3, .detail-header h2 {
+  font-size: 20px;
+  font-weight: 600;
+  color: #6a501b;
+  margin: 0;
+}
+
+/* 关闭按钮 */
+#close-info-btn, #close-detail-btn {
+  background: none;
+  border: none;
+  color: #c59b34 ;
+  font-size: 25px;
+  cursor: pointer;
+  transition: 0.2s;
+  margin-right: 3%;
+  padding-right: 6px;
+}
+#close-info-btn:hover, #close-detail-btn:hover {
+  transform: rotate(90deg);
+  color: #fedd37;
+}
+
+/* === 信息正文 === */
+#info-desc {
+  line-height: 1.6;
+  margin: 10px 0 15px;
+  font-size: 14px;
+}
+
+/* “查看详情”按钮 */
+.detail-btn {
+  display: inline-block;
+  background: linear-gradient(135deg, #d9c58a, #c2a965);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 14px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: 0.2s;
+}
+.detail-btn:hover {
+  background: linear-gradient(135deg, #bfa45c, #a78839);
+}
+
+/* === 轮播区 === */
+.carousel-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+.carousel-track {
+  display: flex;
+  transition: transform 0.5s ease;
+}
+.carousel-item {
+  min-width: 100%;
+  height: 190px;
+}
+.carousel-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 10px;
+}
+.carousel-caption {
+  text-align: center;
+  font-size: 20px;
+  color: #5b4b23;
+  margin-top: 5px;
+}
+
+/* 左右箭头 */
+.carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 249, 220, 0.85);
+  border: 1px solid #d4b574;
+  color: #5a4220;
+  font-size: 20px;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: 0.2s;
+}
+.carousel-arrow:hover {
+  background: #fff4d0;
+  color: #c59b34 ;
+}
+.carousel-arrow.left { left: 8px; }
+.carousel-arrow.right { right: 8px; }
+
+/* === 点赞/点踩区域 === */
+.like-section {
+  display: flex;
+  justify-content: space-around;
+  margin-top: 12px;
+}
+.like-btn, .dislike-btn {
+  background: none;
+  border: 1px solid #d4b574;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 20px;
+  color: #654e25;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.like-btn:hover {
+  background: #f1e3bb;
+  color: #c59b34 ;
+}
+.dislike-btn:hover {
+  background: #f1e3bb;
+  color: #d96b6b;
+}
+.like-btn.active {
+  background: #efe5ff;
+  border-color: #fff34a;
+}
+.dislike-btn.active {
+  background: #ffe5e5;
+  border-color: #d96b6b;
+}
+
+/* === 浮动反馈动画 (+1 / -1) === */
+.floating-feedback {
+  position: absolute;
+  animation: floatUp 0.8s ease-out forwards;
+  font-weight: bold;
+}
+@keyframes floatUp {
+  from { opacity: 1; transform: translateY(0); }
+  to { opacity: 0; transform: translateY(-20px); }
+}
+
+.amap-marker-label:hover {
+  filter: drop-shadow(0 0 4px #f8e7a0);
+}
+
+#marker-info-panel {
+  background: 
+    linear-gradient(rgba(255, 252, 240, 0.961), rgba(255, 252, 240, 0.92)),
+    url("../assets/right-panel-bg.jpg");
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+/* ===== 右侧信息窗的轮播（窄版）===== */
+#marker-info-panel .carousel-container {
+  position: relative;
+  width: 100%;
+  height: 190px;        /* 右侧窄面板专用高度 */
+  overflow: hidden;
+  border-radius: 10px;
+  margin-bottom: 10px;
+}
+#marker-info-panel .carousel-track { display: flex; transition: transform 0.5s ease; }
+#marker-info-panel .carousel-item { min-width: 100%; height: 190px; }
+#marker-info-panel .carousel-item img { width: 100%; height: 100%; object-fit: cover; }
+
+/* ===== 全屏详情页的轮播（大图）===== */
+#detail-panel .carousel-container {
+  position: relative;
+  width: 100%;
+  max-width: 960px;     /* 详情页大图区域更宽 */
+  height: 420px;        /* 详情页大图高度 */
+  margin: 0 auto 14px;
+  overflow: hidden;
+  border-radius: 12px;
+}
+#detail-panel .carousel-track { display: flex; transition: transform 0.5s ease; will-change: transform; }
+#detail-panel .carousel-item { min-width: 100%; height: 100%; position: relative; }
+#detail-panel .carousel-item img { width: 100%; height: 100%; object-fit: cover; }
+
+/* 详情页的箭头按钮稍大且位于图片之上 */
+#detail-panel .carousel-arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;                /* 确保在图片上层 */
+  width: 40px;
+  height: 40px;
+}
+#detail-panel .carousel-arrow.left { left: 12px; }
+#detail-panel .carousel-arrow.right { right: 12px; }
+
+/* 右侧信息窗的箭头较小 */
+#marker-info-panel .carousel-arrow {
+  width: 28px;
+  height: 28px;
+  z-index: 5;
+}
+
+/* 仅右侧信息窗的布局（固定在右侧） */
+#marker-info-panel {
+  position: fixed;
+  top: 50%;
+  right: 40px;
+  transform: translateY(-50%);
+  width: 340px;
+  max-height: 80vh;
+  /* 你的背景与装饰保持不变… */
+}
+
+/* 全屏详情页从底部滑入 */
+#detail-panel {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 95vh;
+  background: 
+    linear-gradient(rgba(255, 252, 240, 0.669), rgba(255, 252, 240, 0.596)),
+    url("../assets/paper-texture.jpg");  /* ✅ 柔和宣纸纹理背景 */
+  background-size: cover;
+  background-position: center;
+    background-repeat: no-repeat;
+  border-top-left-radius: 18px;
+  border-top-right-radius: 18px;
+  box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.15);
+  transform: translateY(100%);          /* ✅ 初始在底部不可见 */
+  transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.3, 1); /* ✅ 顺滑上拉 */
+  z-index: 3000;                        /* ✅ 确保在右侧信息窗上方 */
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  padding: 24px 36px;
+}
+#detail-panel.show { transform: translateY(0); }
+#detail-panel.hidden { transform: translateY(100%); }
+
+/* === 详情页层级修复 === */
+#marker-info-panel {
+  z-index: 2000;  /* 右侧信息窗 */
+}
+
+#detail-panel {
+  z-index: 3000;  /* ✅ 详情页在上层 */
+}
+
+/* ====== 详情页顶部问号按钮 ====== */
+#detail-help-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  border: 1px solid #c59b34;
+  background: none;
+  color: #c59b34;
+  font-weight: bold;
+  font-size: 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  margin-right: 10px;
+  
+  padding-left: 10px;
+}
+
+#detail-help-btn:hover {
+  background: #fff8e5;
+  color: #a67c00;
+  transform: scale(1.1);
+}
+
+/* ====== 详情页说明弹窗 ====== */
+#detail-help-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 4000;
+}
+
+#detail-help-modal.hidden {
+  display: none;
+}
+
+.detail-help-content {
+  background: #fffbe8;
+  border: 2px solid #d4b76a;
+  border-radius: 12px;
+  padding: 22px 28px;
+  max-width: 480px;
+  line-height: 1.7;
+  color: #4b3a1e;
+  box-shadow: 0 4px 18px rgba(0,0,0,0.25);
+  text-align: left;
+  font-size: 15px;
+}
+
+.detail-help-content h3 {
+  margin-top: 0;
+  color: #a67c00;
+  margin-bottom: 12px;
+  font-size: 18px;
+}
+
+.detail-help-content button {
+  display: block;
+  margin: 18px auto 0;
+  background: #c59b34;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.detail-help-content button:hover {
+  background: #a67c00;
+}
+
+#favorites-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.favorites-content {
+  background: #fffbea;
+  border: 2px solid #e2c56b;
+  border-radius: 10px;
+  padding: 20px 28px;
+  width: 340px;
+  box-shadow: 0 6px 18px rgba(120,90,30,0.2);
+  text-align: center;
+  font-family: "STKaiti", "KaiTi", "FangSong", "Noto Serif SC", serif;
+  color: #a1791b;
+}
+
+.favorites-content h3 {
+  margin-bottom: 12px;
+  color: #b58929;
+}
+
+#favorites-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 16px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+#favorites-list li {
+  padding: 6px 0;
+  border-bottom: 1px dashed #e2c56b;
+  cursor: pointer;
+}
+
+#favorites-list li:hover {
+  color: #d4a933;
+  font-weight: bold;
+}
+
+#close-favorites-btn {
+  background: #d4a933;
+  color: #fff;
+  border: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+#close-favorites-btn:hover {
+  background: #b58929;
+}
+
+.favorite-btn{
+  display:inline-block;
+  margin:8px auto 0;
+  padding:8px 14px;
+  border:1px solid #d4a933;
+  border-radius:8px;
+  background:#f7d97c;
+  color:#8b5e00;
+  font-weight:600;
+  cursor:pointer;
+  transition:.2s;
+}
+.favorite-btn:hover{
+  background:#d4a933;
+  color:#fff;
+}
+
+#favorite-spot-btn {
+  display: block;             /* 变成块级 */
+  margin: 10px auto 0;        /* 自动左右外边距 */
+  text-align: center;
+  width: fit-content;         /* 按内容自适应宽度 */
+}
+#detail-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;   /* ✅ 水平居中对齐所有内容 */
+}

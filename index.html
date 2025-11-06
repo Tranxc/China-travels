@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>诗意山河 · 万里河山</title>
+
+  <!-- ✅ 中文书法字体 -->
+  <link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+
+  <!-- ✅ 样式文件 -->
+  <link rel="stylesheet" href="./src/styles/main.css" />
+</head>
+<body>
+  <!-- ✅ 顶部导航 -->
+  <header class="navbar">
+    <div class="logo">诗意山河</div>
+    <nav>
+      <a href="./index.html" class="active">首页</a>
+      <a href="./src/components/culture-page.html">进入地图</a>
+      <a href="#" class="btn-open-auth">登录</a>
+    </nav>
+  </header>
+
+  <!-- ✅ 主内容 -->
+  <main class="hero">
+    <div class="hero-content">
+      <h1 style="font-family: 'Zhi Mang Xing', cursive; font-size: 3rem;">万里河山 · 一卷诗意</h1>
+      <p>山川与诗意共存，天地与文化同辉</p>
+      <div class="buttons">
+        <a href="./src/components/map.html" class="btn explore">开始探索</a>
+        <button class="btn login btn-open-auth">登录账户</button>
+      </div>
+    </div>
+  </main>
+
+  <!-- ✅ 页脚 -->
+  <footer>© 2025 诗意山河 | 山水有诗意</footer>
+
+  <!-- ✅ 动态组件容器 -->
+  <div id="components">
+    <!-- 登录注册弹窗 -->
+    <div include-html="./src/components/auth-modal.html"></div>
+    <!-- 其它组件 -->
+    <div include-html="./src/components/scene-drawer.html"></div>
+  </div>
+
+  <!-- ✅ 脚本 -->
+  <script type="module">
+    // ✅ 动态加载组件
+    async function loadIncludes() {
+      const includes = document.querySelectorAll('[include-html]');
+      for (const el of includes) {
+        const file = el.getAttribute('include-html');
+        try {
+          const res = await fetch(file);
+          if (!res.ok) throw new Error(`无法加载 ${file}`);
+          el.innerHTML = await res.text();
+        } catch (e) {
+          el.innerHTML = `<!-- 加载失败：${file} -->`;
+          console.error(e);
+        }
+      }
+
+      // 所有组件加载完后，初始化登录弹窗事件
+      setupAuthModal();
+    }
+
+    // ✅ 登录弹窗控制逻辑
+    function setupAuthModal() {
+      const modal = document.querySelector('#auth-modal');
+      const backdrop = document.querySelector('.backdrop');
+
+      if (!modal || !backdrop) {
+        console.warn('⚠️ auth-modal 未加载');
+        return;
+      }
+
+      // 打开登录窗口
+      document.querySelectorAll('.btn-open-auth').forEach(btn => {
+        btn.addEventListener('click', () => {
+          modal.classList.remove('hidden');
+          backdrop.classList.remove('hidden');
+          // 默认切换到登录页签
+          setActiveTab('login');
+        });
+      });
+
+      // 关闭窗口
+      document.querySelectorAll('[data-close-auth]').forEach(btn => {
+        btn.addEventListener('click', closeModal);
+      });
+      backdrop.addEventListener('click', closeModal);
+
+      function closeModal() {
+        modal.classList.add('hidden');
+        backdrop.classList.add('hidden');
+      }
+
+      // 登录/注册页签切换
+      modal.addEventListener('click', (e) => {
+        const tab = e.target.closest('.auth-tabs button');
+        if (!tab) return;
+
+        modal.querySelectorAll('.auth-tabs button').forEach(btn => btn.classList.remove('active'));
+        tab.classList.add('active');
+        const target = tab.dataset.tab;
+        setActiveTab(target);
+      });
+
+      // 登录/注册表单提交事件
+      modal.addEventListener('submit', (e) => {
+        if (e.target.matches('#login-form, #register-form')) {
+          e.preventDefault();
+          const type = e.target.id === 'login-form' ? '登录' : '注册';
+          alert(`${type}成功！（示例逻辑）`);
+          closeModal();
+        }
+      });
+
+      function setActiveTab(tabName) {
+        modal.querySelectorAll('.auth-pane').forEach(pane => {
+          pane.classList.toggle('hidden', pane.dataset.pane !== tabName);
+        });
+        modal.querySelectorAll('.auth-tabs button').forEach(btn => {
+          btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadIncludes);
+  </script>
+</body>
+</html>
