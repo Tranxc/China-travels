@@ -15,4 +15,8 @@ window.addEventListener("wheel", (e) => {
   scenes[current].scrollIntoView({ behavior: "smooth" });
 
   setTimeout(() => (scrolling = false), 1000);
+<<<<<<< HEAD
 });
+=======
+});
+>>>>>>> 58988cccb4345b4bda3b0c6c35256a642a789568
