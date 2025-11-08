@@ -5,6 +5,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>诗意山河 · 万里河山</title>
+  <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 
   <link rel="stylesheet" href="./src/styles/main.css" />
 
@@ -70,10 +71,10 @@
       if (!modal || !backdrop) return;
 
       document.querySelectorAll('.btn-open-auth').forEach(btn => {
-        btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
+          e.preventDefault();
           modal.classList.remove('hidden');
           backdrop.classList.remove('hidden');
-          setActiveTab('login');
         });
       });
 
@@ -85,33 +86,6 @@
       function closeModal() {
         modal.classList.add('hidden');
         backdrop.classList.add('hidden');
-      }
-
-      modal.addEventListener('click', (e) => {
-        const tab = e.target.closest('.auth-tabs button');
-        if (!tab) return;
-
-        modal.querySelectorAll('.auth-tabs button').forEach(btn => btn.classList.remove('active'));
-        tab.classList.add('active');
-        setActiveTab(tab.dataset.tab);
-      });
-
-      modal.addEventListener('submit', (e) => {
-        if (e.target.matches('#login-form, #register-form')) {
-          e.preventDefault();
-          const type = e.target.id === 'login-form' ? '登录' : '注册';
-          alert(`${type}成功！（示例逻辑）`);
-          closeModal();
-        }
-      });
-
-      function setActiveTab(tabName) {
-        modal.querySelectorAll('.auth-pane').forEach(pane => {
-          pane.classList.toggle('hidden', pane.dataset.pane !== tabName);
-        });
-        modal.querySelectorAll('.auth-tabs button').forEach(btn => {
-          btn.classList.toggle('active', btn.dataset.tab === tabName);
-        });
       }
     }
 

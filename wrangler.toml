@@ -1,0 +1,10 @@
+name = "china-travel"
+compatibility_date = "2024-01-01"
+pages_build_output_dir = "dist"
+
+# D1 数据库配置
+[[d1_databases]]
+binding = "china_travel_db"
+database_name = "china-travel-db"
+database_id = "ffa9dbc7-9b51-4f7b-b6c2-229f09be3cb4"
+

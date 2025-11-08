@@ -2,33 +2,52 @@
 <div id="auth-modal" class="auth-modal hidden">
   <div class="auth-content">
     <div class="auth-header">
-      <h2>用户登录 / 注册</h2>
+      <h2 id="auth-title">邮箱验证</h2>
       <button class="close-btn" data-close-auth>&times;</button>
     </div>
 
-    <!-- 页签 -->
-    <div class="auth-tabs">
-      <button data-tab="login" class="active">登录</button>
-      <button data-tab="register">注册</button>
-    </div>
-
-    <!-- 登录 -->
-    <div class="auth-pane" data-pane="login">
-      <form id="login-form">
-        <input type="email" placeholder="邮箱" required />
-        <input type="password" placeholder="密码" required />
-        <button type="submit" class="auth-submit">登录</button>
+    <!-- 步骤1: 邮箱验证 -->
+    <div class="auth-pane" id="email-step">
+      <form id="email-form">
+        <input type="email" id="email-input" placeholder="请输入邮箱" required />
+        <div class="code-input-group">
+          <input type="text" id="code-input" placeholder="验证码" required maxlength="6" />
+          <button type="button" id="send-code-btn" class="send-code-btn">发送验证码</button>
+        </div>
+        <button type="submit" class="auth-submit">验证并登录</button>
       </form>
     </div>
 
-    <!-- 注册 -->
-    <div class="auth-pane hidden" data-pane="register">
+    <!-- 步骤2: 完善信息 (新用户) -->
+    <div class="auth-pane hidden" id="register-step">
       <form id="register-form">
-        <input type="text" placeholder="昵称" required />
-        <input type="email" placeholder="邮箱" required />
-        <input type="password" placeholder="设置密码" required />
-        <input type="password" placeholder="确认密码" required />
-        <button type="submit" class="auth-submit">注册</button>
+        <div class="form-group">
+          <label>昵称</label>
+          <input type="text" id="nickname-input" placeholder="请输入昵称" required maxlength="20" />
+        </div>
+
+        <div class="form-group">
+          <label>设置密码</label>
+          <div class="password-group">
+            <input type="password" id="password-input" placeholder="请设置密码" required minlength="6" />
+            <button type="button" class="toggle-password" data-target="password-input">👁️</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>确认密码</label>
+          <div class="password-group">
+            <input type="password" id="confirm-password-input" placeholder="请再次输入密码" required />
+            <button type="button" class="toggle-password" data-target="confirm-password-input">👁️</button>
+          </div>
+        </div>
+
+        <div class="email-display">
+          <label>邮箱</label>
+          <div id="user-email-display"></div>
+        </div>
+
+        <button type="submit" class="auth-submit">完成注册</button>
       </form>
     </div>
   </div>
@@ -49,113 +68,76 @@
   /* 主体容器 */
   .auth-modal {
     position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     z-index: 50;
-    animation: fadeIn 0.4s ease-in-out;
+    width: 90%;
+    max-width: 480px;
   }
 
-  @keyframes fadeIn {
-    from {
-      opacity: 0;
-      transform: translateY(-20px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
-  }
-
-  /* 内容卡片 */
   .auth-content {
-    background: rgba(15, 15, 15, 0.9);
-    border: 1px solid rgba(255, 211, 107, 0.4);
+    background: linear-gradient(135deg, rgba(40, 40, 50, 0.98), rgba(30, 30, 40, 0.95));
     border-radius: 16px;
     padding: 2rem;
-    width: 360px;
-    color: #fff;
-    box-shadow: 0 4px 40px rgba(255, 211, 107, 0.25);
-    backdrop-filter: blur(20px);
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.1);
   }
 
   /* 头部 */
   .auth-header {
-    text-align: center;
-    position: relative;
-    margin-bottom: 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
   }
 
   .auth-header h2 {
-    color: #ffe9a6;
+    color: #ffd36b;
     font-size: 1.5rem;
-    font-family: "Noto Serif SC", serif;
-    letter-spacing: 1px;
+    margin: 0;
   }
 
   .close-btn {
     background: none;
     border: none;
-    color: #ffd36b;
-    font-size: 1.6rem;
-    position: absolute;
-    right: 0;
-    top: 0;
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 2rem;
     cursor: pointer;
+    line-height: 1;
+    transition: color 0.3s;
   }
 
-  /* 页签 */
-  .auth-tabs {
-    display: flex;
-    justify-content: center;
-    gap: 2rem;
-    margin-bottom: 1.5rem;
-  }
-
-  .auth-tabs button {
-    background: none;
-    border: none;
-    color: #ccc;
-    font-size: 1rem;
-    cursor: pointer;
-    position: relative;
-    transition: color .3s;
-  }
-
-  .auth-tabs button:hover {
-    color: #ffe28a;
-  }
-
-  .auth-tabs button.active {
-    color: #ffd36b;
-    font-weight: bold;
-  }
-
-  .auth-tabs button.active::after {
-    content: "";
-    position: absolute;
-    bottom: -4px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 40%;
-    height: 2px;
-    background: #ffd36b;
+  .close-btn:hover {
+    color: #fff;
   }
 
   /* 表单 */
   .auth-pane form {
     display: flex;
     flex-direction: column;
-    gap: .8rem;
+    gap: 1rem;
   }
 
-  .auth-pane input {
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+
+  .form-group label {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 0.9rem;
+    font-weight: 500;
+  }
+
+  .auth-pane input[type="email"],
+  .auth-pane input[type="text"],
+  .auth-pane input[type="password"] {
     background: rgba(255, 255, 255, .15);
     border: 1px solid rgba(255, 255, 255, .3);
     border-radius: 8px;
-    padding: .7rem;
+    padding: 0.85rem;
     color: #fff;
     font-size: .95rem;
     transition: border .3s;
@@ -168,19 +150,99 @@
   }
 
   .auth-pane input::placeholder {
-    color: rgba(255, 255, 255, .9);
+    color: rgba(255, 255, 255, .6);
+  }
+
+  /* 验证码输入组 */
+  .code-input-group {
+    display: flex;
+    gap: 0.5rem;
+  }
+
+  .code-input-group input {
+    flex: 1;
+  }
+
+  .send-code-btn {
+    background: rgba(255, 255, 255, .2);
+    border: 1px solid rgba(255, 255, 255, .4);
+    color: #fff;
+    padding: 0.85rem 1rem;
+    border-radius: 8px;
+    cursor: pointer;
+    white-space: nowrap;
+    font-size: 0.9rem;
+    transition: all .3s;
+  }
+
+  .send-code-btn:hover:not(:disabled) {
+    background: rgba(255, 255, 255, .3);
+  }
+
+  .send-code-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  /* 密码组 */
+  .password-group {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .password-group input {
+    flex: 1;
+    padding-right: 3rem;
+  }
+
+  .toggle-password {
+    position: absolute;
+    right: 0.75rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    opacity: 0.7;
+    transition: opacity 0.3s;
+  }
+
+  .toggle-password:hover {
+    opacity: 1;
+  }
+
+  /* 邮箱显示 */
+  .email-display {
+    background: rgba(255, 211, 107, 0.1);
+    border: 1px solid rgba(255, 211, 107, 0.3);
+    border-radius: 8px;
+    padding: 0.75rem;
+  }
+
+  .email-display label {
+    color: rgba(255, 255, 255, 0.7);
+    font-size: 0.85rem;
+    display: block;
+    margin-bottom: 0.3rem;
+  }
+
+  #user-email-display {
+    color: #ffd36b;
+    font-size: 1rem;
+    font-weight: 500;
   }
 
   /* 提交按钮 */
   .auth-submit {
     background: linear-gradient(90deg, #ffd36b, #f7b733);
     border: none;
-    padding: .8rem;
+    padding: 1rem;
     border-radius: 8px;
     cursor: pointer;
     color: #333;
     font-weight: bold;
     font-size: 1rem;
+    margin-top: 0.5rem;
     transition: all .3s;
   }
 

@@ -1,6 +1,7 @@
 {
   "name": "china-travels",
   "version": "1.0.0",
+  "type": "module",
   "description": "诗意山河 · 中国文化探索平台",
   "keywords": [],
   "author": "",

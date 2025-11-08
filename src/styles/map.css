@@ -512,7 +512,7 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url("../assets/bg-texture.avif");
+  background-image: url("/bg-texture.avif");
   /* ✅ 山水画/宣纸纹理 */
   background-size: cover;
   background-position: center;
@@ -960,13 +960,13 @@ button:hover {
 #marker-info-panel {
   background:
     linear-gradient(rgba(255, 252, 240, 0.961), rgba(255, 252, 240, 0.92)),
-    url("../assets/right-panel-bg.avif");
+    url("/right-panel-bg.avif");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
 }
 
-/* ===== 右侧信息窗的轮播（窄版）===== */
+/* ===== 右侧信息窗的轮播 ===== */
 #marker-info-panel .carousel-container {
   position: relative;
   width: 100%;
@@ -1050,7 +1050,7 @@ button:hover {
   z-index: 5;
 }
 
-/* 仅右侧信息窗的布局（固定在右侧） */
+/* 仅右侧信息窗的布局 */
 #marker-info-panel {
   position: fixed;
   top: 50%;
@@ -1058,7 +1058,6 @@ button:hover {
   transform: translateY(-50%);
   width: 340px;
   max-height: 80vh;
-  /* 你的背景与装饰保持不变… */
 }
 
 /* 全屏详情页从底部滑入 */
@@ -1070,8 +1069,7 @@ button:hover {
   height: 95vh;
   background:
     linear-gradient(rgba(255, 252, 240, 0.669), rgba(255, 252, 240, 0.596)),
-    url("../assets/paper-texture.avif");
-  /* ✅ 柔和宣纸纹理背景 */
+    url("/paper-texture.avif");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

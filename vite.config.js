@@ -25,18 +25,9 @@ function copyComponentsPlugin() {
       copyDir('src/data', 'dist/src/data')
       copyDir('src/modules', 'dist/src/modules')
 
-      // 复制 assets 文件
-      const assetsFiles = ['bg-texture.avif', 'paper-texture.avif', 'right-panel-bg.avif']
-      mkdirSync('dist/assets', { recursive: true })
-      assetsFiles.forEach(file => {
-        try {
-          copyFileSync(join('assets', file), join('dist/assets', file))
-        } catch (e) { }
-      })
-
-      // 复制 assets/spots
+      // 复制 favicon
       try {
-        copyDir('assets/spots', 'dist/assets/spots')
+        copyFileSync('favicon.ico', 'dist/favicon.ico')
       } catch (e) { }
 
       // 复制其他组件
@@ -55,6 +46,7 @@ function copyComponentsPlugin() {
 export default defineConfig({
   root: '.',
   base: './',
+  publicDir: 'assets',
   server: {
     port: 5173,
     open: '/index.html',
