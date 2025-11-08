@@ -3,15 +3,29 @@
   --text: #f7f7f7;
 }
 
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html, body { height: 100%; font-family: 'Noto Serif SC', serif; background: #000; color: var(--text); }
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  height: 100%;
+  font-family: 'Noto Serif SC', serif;
+  background: #000;
+  color: var(--text);
+  overflow: hidden;
+}
 
 /* 顶部导航 */
 .navbar {
   position: fixed;
-  top: 0; left: 0; right: 0;
+  top: 0;
+  left: 0;
+  right: 0;
   height: 64px;
-  background: rgba(20,20,20,0.55);
+  background: rgba(20, 20, 20, 0.55);
   backdrop-filter: blur(8px);
   display: flex;
   align-items: center;
@@ -19,6 +33,7 @@ html, body { height: 100%; font-family: 'Noto Serif SC', serif; background: #000
   padding: 0 72px;
   z-index: 10;
 }
+
 .logo {
   color: var(--brand);
   font-weight: 700;
@@ -26,15 +41,23 @@ html, body { height: 100%; font-family: 'Noto Serif SC', serif; background: #000
   font-size: 2rem;
   letter-spacing: 2px;
 }
-.navbar nav { display: flex; gap: 28px; }
+
+.navbar nav {
+  display: flex;
+  gap: 28px;
+}
+
 .navbar nav a {
   color: #e9e9e9;
   text-decoration: none;
   opacity: .9;
   transition: .25s ease;
 }
+
 .navbar nav a:hover,
-.navbar nav a.active { color: var(--brand); }
+.navbar nav a.active {
+  color: var(--brand);
+}
 
 /* 英雄区背景 */
 .hero {
@@ -46,10 +69,12 @@ html, body { height: 100%; font-family: 'Noto Serif SC', serif; background: #000
   justify-content: center;
   text-align: center;
 }
+
 .hero::after {
   content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(0,0,0,0.3), rgba(0,0,0,0.6));
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6));
 }
 
 /* 中心文字 */
@@ -70,7 +95,7 @@ html, body { height: 100%; font-family: 'Noto Serif SC', serif; background: #000
   font-size: clamp(3rem, 5vw, 4rem);
   color: var(--brand);
   letter-spacing: 2px;
-  text-shadow: 0 4px 12px rgba(0,0,0,0.5);
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .hero-content p {
@@ -100,6 +125,7 @@ html, body { height: 100%; font-family: 'Noto Serif SC', serif; background: #000
   color: #000;
   font-weight: 600;
 }
+
 .btn.explore:hover {
   background-color: #ffeaad;
 }
@@ -108,14 +134,22 @@ html, body { height: 100%; font-family: 'Noto Serif SC', serif; background: #000
   border: 1px solid var(--brand);
   color: var(--brand);
 }
+
 .btn.login:hover {
-  background-color: rgba(255,255,255,0.1);
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 /* 动画 */
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(30px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 /* 页脚 */
@@ -124,9 +158,5 @@ footer {
   padding: 20px;
   font-size: 0.9rem;
   opacity: .85;
-  background: rgba(20,20,20,.45);
-<<<<<<< HEAD
+  background: rgba(20, 20, 20, .45);
 }
-=======
-}
->>>>>>> 58988cccb4345b4bda3b0c6c35256a642a789568

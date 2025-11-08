@@ -4,15 +4,21 @@
   --shadow: rgba(0, 0, 0, 0.45);
 }
 
-* { box-sizing: border-box; }
-html, body { height: 100%; }
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  overflow: hidden;
+}
 
 body {
   margin: 0;
   font-family: "Noto Serif SC", serif;
   color: var(--text);
   background: #0e0e0e;
-  overflow-x: hidden;
 }
 
 /* 顶部导航 */
@@ -28,46 +34,63 @@ body {
   padding: 0 72px;
   z-index: 10;
 }
+
 .logo {
   color: var(--brand);
   font-weight: 700;
   font-size: 1.6rem;
   letter-spacing: 2px;
 }
-.navbar nav { display: flex; gap: 28px; }
+
+.navbar nav {
+  display: flex;
+  gap: 28px;
+}
+
 .navbar nav a {
   color: #e9e9e9;
   text-decoration: none;
   opacity: .95;
   transition: .25s ease;
 }
+
 .navbar nav a:hover,
-.navbar nav a.active { color: var(--brand); }
+.navbar nav a.active {
+  color: var(--brand);
+}
 
 /* 滚动容器 */
 .scenes {
   margin-top: 64px;
-  scroll-snap-type: y mandatory;
   height: calc(100dvh - 64px);
-  overflow-y: auto;
+  overflow-y: scroll;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  scroll-behavior: smooth;
+}
+
+/* 隐藏滚动条 */
+.scenes::-webkit-scrollbar {
+  display: none;
 }
 
 /* 每一幕风景 */
 .scene {
   position: relative;
   min-height: calc(100dvh - 64px);
-  scroll-snap-align: start;
+  height: calc(100dvh - 64px);
   display: grid;
   place-items: center;
   padding: clamp(16px, 4vw, 48px);
   background:
-    var(--bg, radial-gradient(1200px 800px at 50% 50%, #2a2a2a, #0f0f0f))
-    no-repeat center / cover fixed;
+    var(--bg, radial-gradient(1200px 800px at 50% 50%, #2a2a2a, #0f0f0f)) no-repeat center / cover fixed;
 }
+
 .scene::after {
   content: "";
-  position: absolute; inset: 0;
-  background: linear-gradient(180deg, rgba(10,10,10,.25), rgba(10,10,10,.35));
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(10, 10, 10, .25), rgba(10, 10, 10, .35));
 }
 
 /* 文字容器 */
@@ -90,11 +113,15 @@ body {
   z-index: 1;
   width: min(980px, 90vw);
   padding: clamp(24px, 5vw, 40px);
-  border-radius: 0;             /* ✅ 不再需要圆角 */
-  background: transparent;      /* ✅ 移除灰色背景 */
-  box-shadow: none;             /* ✅ 移除阴影 */
+  border-radius: 0;
+  /* ✅ 不再需要圆角 */
+  background: transparent;
+  /* ✅ 移除灰色背景 */
+  box-shadow: none;
+  /* ✅ 移除阴影 */
   animation: fadeUp 1.2s ease;
-  backdrop-filter: none;        /* ✅ 不再模糊 */
+  backdrop-filter: none;
+  /* ✅ 不再模糊 */
 }
 
 .place {
@@ -109,12 +136,19 @@ body {
   font-size: clamp(1.1rem, 2.2vw, 1.35rem);
   line-height: 1.85;
   color: #ffffff;
-  text-shadow: 0 2px 8px rgba(0,0,0,.35);
+  text-shadow: 0 2px 8px rgba(0, 0, 0, .35);
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(24px); }
-  to   { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 footer {
@@ -122,9 +156,5 @@ footer {
   color: #ddd;
   opacity: .9;
   padding: 28px 0 36px;
-  background: rgba(20,20,20,.32);
-<<<<<<< HEAD
+  background: rgba(20, 20, 20, .32);
 }
-=======
-}
->>>>>>> 58988cccb4345b4bda3b0c6c35256a642a789568

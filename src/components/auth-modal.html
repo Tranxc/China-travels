@@ -37,85 +37,160 @@
 <div class="backdrop hidden"></div>
 
 <style>
-/* 背景遮罩 */
-.backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  backdrop-filter: blur(6px);
-  z-index: 40;
-}
+  /* 背景遮罩 */
+  .backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+    backdrop-filter: blur(6px);
+    z-index: 40;
+  }
 
-/* 主体容器 */
-.auth-modal {
-  position: fixed;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 50;
-  animation: fadeIn 0.4s ease-in-out;
-}
+  /* 主体容器 */
+  .auth-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 50;
+    animation: fadeIn 0.4s ease-in-out;
+  }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(-20px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(-20px);
+    }
 
-/* 内容卡片 */
-.auth-content {
-  background: rgba(15, 15, 15, 0.9);
-  border: 1px solid rgba(255, 211, 107, 0.4);
-  border-radius: 16px;
-  padding: 2rem;
-  width: 360px;
-  color: #fff;
-  box-shadow: 0 4px 40px rgba(255, 211, 107, 0.25);
-  backdrop-filter: blur(20px);
-}
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 
-/* 头部 */
-.auth-header { text-align: center; position: relative; margin-bottom: 1rem; }
-.auth-header h2 {
-  color: #ffe9a6; font-size: 1.5rem; font-family: "Noto Serif SC", serif; letter-spacing: 1px;
-}
-.close-btn {
-  background: none; border: none; color: #ffd36b; font-size: 1.6rem;
-  position: absolute; right: 0; top: 0; cursor: pointer;
-}
+  /* 内容卡片 */
+  .auth-content {
+    background: rgba(15, 15, 15, 0.9);
+    border: 1px solid rgba(255, 211, 107, 0.4);
+    border-radius: 16px;
+    padding: 2rem;
+    width: 360px;
+    color: #fff;
+    box-shadow: 0 4px 40px rgba(255, 211, 107, 0.25);
+    backdrop-filter: blur(20px);
+  }
 
-/* 页签 */
-.auth-tabs { display: flex; justify-content: center; gap: 2rem; margin-bottom: 1.5rem; }
-.auth-tabs button {
-  background: none; border: none; color: #ccc; font-size: 1rem; cursor: pointer; position: relative; transition: color .3s;
-}
-.auth-tabs button:hover { color: #ffe28a; }
-.auth-tabs button.active { color: #ffd36b; font-weight: bold; }
-.auth-tabs button.active::after {
-  content: ""; position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
-  width: 40%; height: 2px; background: #ffd36b;
-}
+  /* 头部 */
+  .auth-header {
+    text-align: center;
+    position: relative;
+    margin-bottom: 1rem;
+  }
 
-/* 表单 */
-.auth-pane form { display: flex; flex-direction: column; gap: .8rem; }
-.auth-pane input {
-  background: rgba(255,255,255,.15); border: 1px solid rgba(255,255,255,.3);
-  border-radius: 8px; padding: .7rem; color: #fff; font-size: .95rem; transition: border .3s;
-}
-.auth-pane input:focus { outline: none; border-color: #ffd36b; box-shadow: 0 0 8px rgba(255,211,107,.5); }
-.auth-pane input::placeholder { color: rgba(255,255,255,.9); }
+  .auth-header h2 {
+    color: #ffe9a6;
+    font-size: 1.5rem;
+    font-family: "Noto Serif SC", serif;
+    letter-spacing: 1px;
+  }
 
-/* 提交按钮 */
-.auth-submit {
-  background: linear-gradient(90deg, #ffd36b, #f7b733); border: none; padding: .8rem;
-  border-radius: 8px; cursor: pointer; color: #333; font-weight: bold; font-size: 1rem; transition: all .3s;
-}
-.auth-submit:hover { background: linear-gradient(90deg, #ffe28a, #ffc94b); transform: translateY(-2px); }
+  .close-btn {
+    background: none;
+    border: none;
+    color: #ffd36b;
+    font-size: 1.6rem;
+    position: absolute;
+    right: 0;
+    top: 0;
+    cursor: pointer;
+  }
 
-/* 通用 */
-.hidden { display: none; }
-<<<<<<< HEAD
+  /* 页签 */
+  .auth-tabs {
+    display: flex;
+    justify-content: center;
+    gap: 2rem;
+    margin-bottom: 1.5rem;
+  }
+
+  .auth-tabs button {
+    background: none;
+    border: none;
+    color: #ccc;
+    font-size: 1rem;
+    cursor: pointer;
+    position: relative;
+    transition: color .3s;
+  }
+
+  .auth-tabs button:hover {
+    color: #ffe28a;
+  }
+
+  .auth-tabs button.active {
+    color: #ffd36b;
+    font-weight: bold;
+  }
+
+  .auth-tabs button.active::after {
+    content: "";
+    position: absolute;
+    bottom: -4px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40%;
+    height: 2px;
+    background: #ffd36b;
+  }
+
+  /* 表单 */
+  .auth-pane form {
+    display: flex;
+    flex-direction: column;
+    gap: .8rem;
+  }
+
+  .auth-pane input {
+    background: rgba(255, 255, 255, .15);
+    border: 1px solid rgba(255, 255, 255, .3);
+    border-radius: 8px;
+    padding: .7rem;
+    color: #fff;
+    font-size: .95rem;
+    transition: border .3s;
+  }
+
+  .auth-pane input:focus {
+    outline: none;
+    border-color: #ffd36b;
+    box-shadow: 0 0 8px rgba(255, 211, 107, .5);
+  }
+
+  .auth-pane input::placeholder {
+    color: rgba(255, 255, 255, .9);
+  }
+
+  /* 提交按钮 */
+  .auth-submit {
+    background: linear-gradient(90deg, #ffd36b, #f7b733);
+    border: none;
+    padding: .8rem;
+    border-radius: 8px;
+    cursor: pointer;
+    color: #333;
+    font-weight: bold;
+    font-size: 1rem;
+    transition: all .3s;
+  }
+
+  .auth-submit:hover {
+    background: linear-gradient(90deg, #ffe28a, #ffc94b);
+    transform: translateY(-2px);
+  }
+
+  /* 通用 */
+  .hidden {
+    display: none;
+  }
 </style>
-=======
-</style>
->>>>>>> 58988cccb4345b4bda3b0c6c35256a642a789568

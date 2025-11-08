@@ -1,13 +1,17 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>山河行吟 · 诗意山河</title>
   <!-- 引入中文书法字体 -->
-  <link href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap" rel="stylesheet">
+  <link
+    href="https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="../styles/culture.css" />
 </head>
+
 <body>
   <header class="navbar">
     <div class="logo">诗意山河</div>
@@ -59,21 +63,21 @@
       </div>
 
     </section>
-     <section class="scene" style="--bg:url('/assets/images/sichuan.jpg')">
+    <section class="scene" style="--bg:url('/assets/images/sichuan.jpg')">
       <div class="overlay">
         <h1>九寨沟</h1>
         <h3 class="place">四川·阿坝</h3>
         <p class="poem">江作青罗带，山如碧玉簪</p>
       </div>
     </section>
-     <section class="scene" style="--bg:url('/assets/images/zhangjiajie.jpg')">
+    <section class="scene" style="--bg:url('/assets/images/zhangjiajie.jpg')">
       <div class="overlay">
         <h1>张家界峰林</h1>
         <h3 class="place">湖南·张家界</h3>
         <p class="poem">千峰林立接云霄，奇石幽谷映碧涛</p>
       </div>
     </section>
-     <section class="scene" style="--bg:url('/assets/images/lasa.jpg')">
+    <section class="scene" style="--bg:url('/assets/images/lasa.jpg')">
       <div class="overlay">
         <h1>布达拉宫</h1>
         <h3 class="place">西藏·拉萨</h3>
@@ -86,22 +90,52 @@
 
   <script type="module">
     const scenes = document.querySelectorAll('.scene');
-    let lock = false, idx = 0;
+    let currentIndex = 0;
+    let isScrolling = false;
 
+    // 滚动到指定场景
+    function scrollToScene(index) {
+      if (index < 0 || index >= scenes.length || isScrolling) return;
+
+      isScrolling = true;
+      currentIndex = index;
+
+      scenes[currentIndex].scrollIntoView({
+        behavior: 'smooth',
+        block: 'start'
+      });
+
+      setTimeout(() => {
+        isScrolling = false;
+      }, 800);
+    }
+
+    // 监听滚轮,直接响应
     addEventListener('wheel', (e) => {
-      if (lock) return;
-      lock = true;
+      e.preventDefault();
 
-      if (e.deltaY > 0 && idx < scenes.length - 1) idx++;
-      else if (e.deltaY < 0 && idx > 0) idx--;
+      if (isScrolling) return;
 
-      scenes[idx].scrollIntoView({ behavior: 'smooth' });
-      setTimeout(() => (lock = false), 900);
-    }, { passive: true });
+      if (e.deltaY > 0) {
+        scrollToScene(currentIndex + 1);
+      } else if (e.deltaY < 0) {
+        scrollToScene(currentIndex - 1);
+      }
+    }, { passive: false });
+
+    // 键盘支持
+    addEventListener('keydown', (e) => {
+      if (isScrolling) return;
+
+      if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+        e.preventDefault();
+        scrollToScene(currentIndex + 1);
+      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault();
+        scrollToScene(currentIndex - 1);
+      }
+    });
   </script>
 </body>
-<<<<<<< HEAD
+
 </html>
-=======
-</html>
->>>>>>> 58988cccb4345b4bda3b0c6c35256a642a789568

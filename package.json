@@ -1,28 +1,19 @@
 {
-<<<<<<< HEAD
-  "name": "WEBCOMPITITION",
-  "version": "1.0.0",
-=======
   "name": "china-travels",
   "version": "1.0.0",
   "description": "诗意山河 · 中国文化探索平台",
->>>>>>> 58988cccb4345b4bda3b0c6c35256a642a789568
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
   },
-<<<<<<< HEAD
   "devDependencies": {
     "vite": "^5.0.0"
-  }
-}
-=======
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  },
   "dependencies": {
     "vite": "^7.1.12"
   }
 }
->>>>>>> 58988cccb4345b4bda3b0c6c35256a642a789568
