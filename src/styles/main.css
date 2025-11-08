@@ -66,7 +66,7 @@ body {
 .hero {
   position: relative;
   height: 100vh;
-  background: url('/assets/images/spenser-sembrat-euS9sAMjuRs-unsplash.jpg') no-repeat center / cover fixed;
+  background: url('/assets/images/Homepage.avif') no-repeat center / cover fixed;
   display: flex;
   align-items: center;
   justify-content: center;
