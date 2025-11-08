@@ -3,8 +3,8 @@ export class MapManager {
     this.map = null;
     this.geoJsonLayer = null;
     this.currentLayer = 'normal';
-    this.hoverProvince = null; // 当前悬停省份名称
-    this.favorites = new Set(); // ✅ 独立存储收藏省份
+    this.hoverProvince = null; 
+    this.favorites = new Set(); 
     this.votes = new Map();
     this.spotToProvince = {
   '故宫': '北京市',

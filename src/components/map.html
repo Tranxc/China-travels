@@ -1,119 +1,118 @@
 <!DOCTYPE html>
 <html lang="zh">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>诗意山河 - 中国地图交互版</title>
+
   <link rel="stylesheet" href="../styles/map.css">
+
+  <style>
+    html {
+      background: #1a1a1a;
+    }
+  </style>
 </head>
-
-
-<!-- 右侧信息窗 -->
-
-
 
 <body>
   <div class="map-wrapper">
-  <div id="map-container"></div>
-</div>
+    <div id="map-container"></div>
+  </div>
 
   <header class="topbar">
-  <div class="topbar-left">
-    <h2 class="brand">诗意山河</h2>
-    <div class="toolbar-buttons">
-      <input id="search-input" placeholder="搜索地点...">
-      <button id="search-btn">搜索</button>
-       <button id="help-btn" title="搜索帮助">？</button> <!-- ✅ 新增帮助按钮 -->
-      <button id="locate-btn" style="display:none;">定位</button>
-<button id="layer-btn" style="display:none;">切换图层</button>
+    <div class="topbar-left">
+      <h2 class="brand">诗意山河</h2>
+      <div class="toolbar-buttons">
+        <input id="search-input" placeholder="搜索地点...">
+        <button id="search-btn">搜索</button>
+        <button id="help-btn" title="搜索帮助">？</button>
+        <button id="locate-btn" style="display:none;">定位</button>
+        <button id="layer-btn" style="display:none;">切换图层</button>
+      </div>
     </div>
-  </div>
-  <div class="topbar-right">
-    <img src="src/assets/avatar.png" class="avatar" alt="用户头像">
-    <div class="user-menu">
-      <button id="favorites-btn">我的收藏</button> <!-- ✅ 新增收藏按钮 -->
-      <button id="switch-account-btn">切换账号</button>
+    <div class="topbar-right">
+      <img src="src/assets/avatar.png" class="avatar" alt="用户头像">
+      <div class="user-menu">
+        <button id="favorites-btn">我的收藏</button>
+        <button id="switch-account-btn">切换账号</button>
+      </div>
     </div>
-  </div>
-</header>
+  </header>
 
+  <!-- 高德地图API -->
+  <script
+    src="https://webapi.amap.com/maps?v=2.0&key=595cc2e85e16d0d4f287b56202647395&plugin=AMap.Scale,AMap.ToolBar,AMap.ControlBar,AMap.DistrictLayer"></script>
 
-
-  <!-- 高德地图 JS 2.0 -->
-   <script src="https://webapi.amap.com/maps?v=2.0&key=595cc2e85e16d0d4f287b56202647395&plugin=AMap.Scale,AMap.ToolBar,AMap.ControlBar,AMap.DistrictLayer"></script>
-
-  <!-- JS 模块入口 -->
+  <!-- 地图交互模块 -->
   <script type="module" src="../modules/mapMain.js"></script>
- 
 
-<div id="detail-panel" class="hidden">
-  <div class="detail-header">
-    <h2 id="detail-title">省市详情</h2>
-    <button id="detail-help-btn" title="查看操作说明">？</button>
-    <button id="close-detail-btn" title="关闭详情">✖</button>
-    <!-- 详情页操作说明弹窗 -->
-<div id="detail-help-modal" class="hidden">
-  <div class="detail-help-content">
-    <h3>详情页操作说明</h3>
-    <ul style="padding-left: 18px;">
-      <li>照片会 <b>自动轮换</b> 展示不同景点。</li>
-      <li>你可以点击左右按钮手动切换景点。</li>
-      <li>点击景点图片可进入该景点的独立页。</li>
-      <li>你可以为每个景点点赞或点踩。</li>
-    </ul>
-    <button id="close-detail-help-btn">我知道了</button>
-  </div>
-</div>
+  <!-- 省份详情面板 -->
+  <div id="detail-panel" class="hidden">
+    <div class="detail-header">
+      <h2 id="detail-title">省市详情</h2>
+      <button id="detail-help-btn" title="查看操作说明">？</button>
+      <button id="close-detail-btn" title="关闭详情">✖</button>
+
+      <div id="detail-help-modal" class="hidden">
+        <div class="detail-help-content">
+          <h3>详情页操作说明</h3>
+          <ul style="padding-left: 18px;">
+            <li>照片会自动轮换展示不同景点</li>
+            <li>可点击左右按钮手动切换景点</li>
+            <li>点击景点图片进入景点独立页</li>
+            <li>可为每个景点点赞或点踩</li>
+          </ul>
+          <button id="close-detail-help-btn">我知道了</button>
+        </div>
+      </div>
     </div>
     <div id="detail-content">
       <div class="carousel-container">
-    <button class="carousel-arrow left" id="carousel-prev">‹</button>
-    <div class="carousel-track" id="carousel-track">
-      <!-- 图片项会由 JS 填充 -->
-    </div>
-    <button class="carousel-arrow right" id="carousel-next">›</button>
+        <button class="carousel-arrow left" id="carousel-prev">‹</button>
+        <div class="carousel-track" id="carousel-track"></div>
+        <button class="carousel-arrow right" id="carousel-next">›</button>
       </div>
-          <p class="carousel-caption" id="carousel-caption">加载中...</p>
-          <button id="favorite-spot-btn" class="favorite-btn">收藏景点</button>  <!-- ✅ 新增 -->
+      <p class="carousel-caption" id="carousel-caption">加载中...</p>
+      <button id="favorite-spot-btn" class="favorite-btn">收藏景点</button>
     </div>
     <div class="like-section">
       <button class="like-btn" id="like-btn">喜欢 <span id="like-count">0</span></button>
       <button class="dislike-btn" id="dislike-btn">不喜欢 <span id="dislike-count">0</span></button>
     </div>
-</div>
-  <div id="marker-info-panel" class="hidden">
-    
-  <div class="info-header">
-    <h3 id="info-title">点击标记点查看详情</h3>
-    <button id="close-info-btn" title="关闭">✖</button>
   </div>
-  <p id="info-desc"></p>
-  <button id="detail-btn" class="detail-btn">查看详情</button>
-</div>
 
-<!-- ✅ 搜索帮助弹窗 -->
-<div id="help-modal" class="hidden">
-  <div class="help-content">
-    <h3>搜索功能说明</h3>
-    <p>
-      你可以在搜索框中输入景点名称（如“故宫”、“外滩”、“都江堰”），
-      系统会自动定位到该景点所在的省份，并显示详细信息。
-    </p>
-    <p>
-      例如：<br>
-      - 输入 “颐和园” → 跳转到 <b>北京市</b><br>
-      - 输入 “宽窄巷子” → 跳转到 <b>四川省</b>
-    </p>
-    <p>你也可以直接输入省份名（如“广东省”、“上海市”）查看相关信息。</p>
-    <button id="close-help-btn">我知道了</button>
+  <!-- 标记点信息面板 -->
+  <div id="marker-info-panel" class="hidden">
+    <div class="info-header">
+      <h3 id="info-title">点击标记点查看详情</h3>
+      <button id="close-info-btn" title="关闭">✖</button>
+    </div>
+    <p id="info-desc"></p>
+    <button id="detail-btn" class="detail-btn">查看详情</button>
   </div>
-</div>
-<div id="favorites-modal" class="hidden">
-  <div class="favorites-content">
-    <h3>我的收藏</h3>
-    <ul id="favorites-list"></ul>
-    <button id="close-favorites-btn">关闭</button>
+
+  <!-- 搜索帮助弹窗 -->
+  <div id="help-modal" class="hidden">
+    <div class="help-content">
+      <h3>搜索功能说明</h3>
+      <p>可以输入景点名称（如"故宫"、"外滩"、"都江堰"），系统会自动定位到该景点所在的省份。</p>
+      <p>例如：输入 "颐和园" → 跳转到 <b>北京市</b>，输入 "宽窄巷子" → 跳转到 <b>四川省</b></p>
+      <p>也可以直接输入省份名（如"广东省"、"上海市"）查看相关信息。</p>
+      <button id="close-help-btn">我知道了</button>
+    </div>
   </div>
-</div>
+
+  <!-- 收藏列表弹窗 -->
+  <div id="favorites-modal" class="hidden">
+    <div class="favorites-content">
+      <h3>我的收藏</h3>
+      <ul id="favorites-list"></ul>
+      <button id="close-favorites-btn">关闭</button>
+    </div>
+  </div>
+
+  <!-- 地图脚本已在页面中异步加载 -->
 </body>
+
 </html>
