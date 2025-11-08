@@ -13,6 +13,27 @@
       background: #1a1a1a;
     }
   </style>
+
+  <!-- 防止用户名闪烁: 在页面渲染前直接处理 -->
+  <script>
+    (function () {
+      try {
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (user) {
+          // 页面加载后立即更新
+          document.addEventListener('DOMContentLoaded', function () {
+            const switchBtn = document.querySelector('#switch-account-btn');
+            if (switchBtn && user) {
+              switchBtn.textContent = user.nickname || user.email.split('@')[0];
+              switchBtn.style.color = '#ffd36b'; // 确保颜色正确
+            }
+          });
+        }
+      } catch (e) {
+        console.error('检查登录状态失败:', e);
+      }
+    })();
+  </script>
 </head>
 
 <body>
@@ -46,6 +67,15 @@
 
   <!-- 地图交互模块 -->
   <script type="module" src="../modules/mapMain.js"></script>
+
+  <script type="module">
+    // 初始化认证模块
+    import { initAuthUI } from '../modules/auth.js';
+
+    document.addEventListener('DOMContentLoaded', () => {
+      initAuthUI();
+    });
+  </script>
 
   <!-- 省份详情面板 -->
   <div id="detail-panel" class="hidden">

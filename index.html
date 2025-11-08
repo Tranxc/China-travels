@@ -8,12 +8,30 @@
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
 
   <link rel="stylesheet" href="./src/styles/main.css" />
+  <link rel="stylesheet" href="./src/styles/auth.css" />
 
   <style>
     html {
       background: #000;
     }
   </style>
+
+  <!-- 防止用户名闪烁: 在页面渲染前直接处理 -->
+  <script>
+    (function () {
+      try {
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (user) {
+          // 添加 style 标签隐藏登录按钮
+          const style = document.createElement('style');
+          style.textContent = '.btn-open-auth { display: none !important; }';
+          document.head.appendChild(style);
+        }
+      } catch (e) {
+        console.error('检查登录状态失败:', e);
+      }
+    })();
+  </script>
 </head>
 
 <body>
@@ -33,7 +51,6 @@
       <div class="buttons">
         <a href="./src/components/culture-page.html" class="btn explore">山河行吟</a>
         <a href="./src/components/map.html" class="btn explore">进入地图</a>
-        <button class="btn login btn-open-auth">登录账户</button>
       </div>
     </div>
   </main>
@@ -46,6 +63,9 @@
     <div include-html="./src/components/scene-drawer.html"></div>
   </div>
 
+  <!-- 加载主模块 -->
+  <script type="module" src="./src/main.js"></script>
+
   <script type="module">
     // 动态加载HTML组件
     async function loadIncludes() {
@@ -56,36 +76,11 @@
           const res = await fetch(file);
           if (!res.ok) throw new Error(`无法加载 ${file}`);
           el.innerHTML = await res.text();
+          console.log('[Include] 已加载:', file);
         } catch (e) {
+          console.error('[Include] 加载失败:', file, e);
           el.innerHTML = `<!-- 加载失败：${file} -->`;
         }
-      }
-      setupAuthModal();
-    }
-
-    // 登录弹窗控制
-    function setupAuthModal() {
-      const modal = document.querySelector('#auth-modal');
-      const backdrop = document.querySelector('.backdrop');
-
-      if (!modal || !backdrop) return;
-
-      document.querySelectorAll('.btn-open-auth').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          e.preventDefault();
-          modal.classList.remove('hidden');
-          backdrop.classList.remove('hidden');
-        });
-      });
-
-      document.querySelectorAll('[data-close-auth]').forEach(btn => {
-        btn.addEventListener('click', closeModal);
-      });
-      backdrop.addEventListener('click', closeModal);
-
-      function closeModal() {
-        modal.classList.add('hidden');
-        backdrop.classList.add('hidden');
       }
     }
 

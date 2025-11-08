@@ -31,8 +31,7 @@ export class UIManager {
       });
     });
 
-    // 初始化弹窗与抽屉的事件
-    this.bindAuthButtons();
+    // 初始化景点抽屉事件
     this.bindDrawerClose();
   }
 
@@ -41,60 +40,6 @@ export class UIManager {
     Object.values(this.pages).forEach(p => p.classList.remove('active'));
     this.pages[page].classList.add('active');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
-
-  /* ========== 登录注册弹窗 ========== */
-
-  bindAuthButtons() {
-    const loginBtns = document.querySelectorAll('.btn-open-auth');
-    loginBtns.forEach(btn => {
-      btn.addEventListener('click', () => this.openAuthModal('login'));
-    });
-
-    // 切换 tab 或关闭
-    document.addEventListener('click', e => {
-      const t = e.target.closest('[data-open-auth]');
-      if (t) {
-        const tab = t.getAttribute('data-open-auth');
-        this.switchAuthTab(tab);
-      }
-
-      const close = e.target.closest('[data-close-auth]');
-      if (close) this.closeAuthModal();
-    });
-  }
-
-  openAuthModal(tab = 'login') {
-    const modal = document.querySelector('#auth-modal');
-    const backdrop = document.querySelector('.backdrop');
-    if (!modal || !backdrop) return;
-
-    modal.classList.add('show');
-    backdrop.classList.remove('hidden');
-    this.switchAuthTab(tab);
-  }
-
-  closeAuthModal() {
-    const modal = document.querySelector('#auth-modal');
-    const backdrop = document.querySelector('.backdrop');
-    if (!modal || !backdrop) return;
-
-    modal.classList.remove('show');
-    backdrop.classList.add('hidden');
-  }
-
-  switchAuthTab(tab) {
-    const tabs = document.querySelectorAll('.auth-tabs button');
-    const panes = document.querySelectorAll('.auth-pane');
-
-    tabs.forEach(b => b.classList.remove('active'));
-    panes.forEach(p => p.classList.add('hidden'));
-
-    const activeBtn = document.querySelector(`.auth-tabs button[data-tab="${tab}"]`);
-    const activePane = document.querySelector(`.auth-pane[data-pane="${tab}"]`);
-
-    if (activeBtn) activeBtn.classList.add('active');
-    if (activePane) activePane.classList.remove('hidden');
   }
 
   /* ========== 景点详情抽屉 ========== */

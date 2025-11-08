@@ -7,12 +7,30 @@
   <title>山河行吟 · 诗意山河</title>
 
   <link rel="stylesheet" href="/src/styles/culture.css" />
+  <link rel="stylesheet" href="/src/styles/auth.css" />
 
   <style>
     html {
       background: #0e0e0e;
     }
   </style>
+
+  <!-- 防止用户名闪烁: 在页面渲染前直接处理 -->
+  <script>
+    (function () {
+      try {
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        if (user) {
+          // 添加 style 标签隐藏登录按钮
+          const style = document.createElement('style');
+          style.textContent = '.btn-open-auth { display: none !important; }';
+          document.head.appendChild(style);
+        }
+      } catch (e) {
+        console.error('检查登录状态失败:', e);
+      }
+    })();
+  </script>
 </head>
 
 <body>
@@ -21,7 +39,7 @@
     <nav>
       <a href="/index.html">首页</a>
       <a href="#" class="active">山河行吟</a>
-      <a href="#">登录</a>
+      <a href="#" class="btn-open-auth">登录</a>
     </nav>
   </header>
 
@@ -89,49 +107,76 @@
     </section>
   </main>
 
+  <!-- 认证模态框 -->
+  <div include-html="/src/components/auth-modal.html"></div>
+
   <footer>© 2025 诗意山河 | 山水有诗意</footer>
 
   <script type="module">
-    const scenes = document.querySelectorAll('.scene');
-    let currentIndex = 0;
-    let isScrolling = false;
-
-    // 全屏滚动切换
-    function scrollToScene(index) {
-      if (index < 0 || index >= scenes.length || isScrolling) return;
-      isScrolling = true;
-      currentIndex = index;
-      scenes[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setTimeout(() => { isScrolling = false; }, 800);
+    // 加载HTML组件
+    async function loadComponent(selector) {
+      const element = document.querySelector(selector);
+      if (!element) return;
+      const file = element.getAttribute('include-html');
+      if (!file) return;
+      const response = await fetch(file);
+      if (response.ok) {
+        element.outerHTML = await response.text();
+      }
     }
 
-    // 鼠标滚轮控制
-    addEventListener('wheel', (e) => {
-      e.preventDefault();
-      if (isScrolling) return;
-      if (e.deltaY > 0) scrollToScene(currentIndex + 1);
-      else if (e.deltaY < 0) scrollToScene(currentIndex - 1);
-    }, { passive: false });
+    // 加载认证模态框并初始化
+    (async () => {
+      // 先加载认证模态框
+      await loadComponent('[include-html]');
 
-    // 键盘控制
-    addEventListener('keydown', (e) => {
-      if (isScrolling) return;
-      if (e.key === 'ArrowDown' || e.key === 'PageDown') {
-        e.preventDefault();
-        scrollToScene(currentIndex + 1);
-      } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
-        e.preventDefault();
-        scrollToScene(currentIndex - 1);
+      const scenes = document.querySelectorAll('.scene');
+      let currentIndex = 0;
+      let isScrolling = false;
+
+      // 全屏滚动切换
+      function scrollToScene(index) {
+        if (index < 0 || index >= scenes.length || isScrolling) return;
+        isScrolling = true;
+        currentIndex = index;
+        scenes[currentIndex].scrollIntoView({ behavior: 'smooth', block: 'start' });
+        setTimeout(() => { isScrolling = false; }, 800);
       }
-    });
 
-    // 异步加载字体(不阻塞页面渲染)
-    document.addEventListener('DOMContentLoaded', () => {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = 'https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap';
-      document.head.appendChild(link);
-    });
+      // 鼠标滚轮控制
+      addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (isScrolling) return;
+        if (e.deltaY > 0) scrollToScene(currentIndex + 1);
+        else if (e.deltaY < 0) scrollToScene(currentIndex - 1);
+      }, { passive: false });
+
+      // 键盘控制
+      addEventListener('keydown', (e) => {
+        if (isScrolling) return;
+        if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+          e.preventDefault();
+          scrollToScene(currentIndex + 1);
+        } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+          e.preventDefault();
+          scrollToScene(currentIndex - 1);
+        }
+      });
+
+      // 异步加载字体
+      document.addEventListener('DOMContentLoaded', () => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap';
+        document.head.appendChild(link);
+      });
+
+      // 等待认证模态框加载完成后，再初始化认证模块
+      import('/src/modules/auth.js').then(module => {
+        module.initAuthUI();
+        module.updateAuthUI(); // 如果用户已登录，更新UI
+      });
+    })();
   </script>
 </body>
 
