@@ -1,15 +1,40 @@
-export async function getSceneByIdentifier(db, { sceneId, sceneSlug }) {
-    if (!sceneId && !sceneSlug) return null;
+export async function getSceneByIdentifier(db, identifiers = {}) {
+    if (!identifiers || typeof identifiers !== 'object') return null;
 
-    if (sceneId) {
-        const numericId = Number(sceneId);
-        if (Number.isNaN(numericId)) return null;
-        const record = await db.prepare('SELECT * FROM scenes WHERE id = ?').bind(numericId).first();
-        if (record) return record;
+    const {
+        sceneId,
+        id,
+        scene_id: sceneIdFromRecord,
+        sceneSlug,
+        slug,
+        scene,
+        name,
+    } = identifiers;
+
+    const idCandidates = [sceneId, id, sceneIdFromRecord];
+    for (const candidate of idCandidates) {
+        const numericId = Number(candidate);
+        if (!Number.isNaN(numericId) && numericId > 0) {
+            const record = await db.prepare('SELECT * FROM scenes WHERE id = ?').bind(numericId).first();
+            if (record) return record;
+        }
     }
 
-    if (sceneSlug) {
-        return await db.prepare('SELECT * FROM scenes WHERE slug = ?').bind(sceneSlug).first();
+    const textCandidates = [sceneSlug, slug, scene, name];
+    for (const candidate of textCandidates) {
+        if (candidate === undefined || candidate === null) continue;
+        const normalized = String(candidate).trim();
+        if (!normalized) continue;
+
+        const record = await db.prepare(`
+            SELECT *
+            FROM scenes
+            WHERE LOWER(slug) = LOWER(?)
+               OR LOWER(name) = LOWER(?)
+            LIMIT 1
+        `).bind(normalized, normalized).first();
+
+        if (record) return record;
     }
 
     return null;
