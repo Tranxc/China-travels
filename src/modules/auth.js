@@ -1,7 +1,18 @@
 // 认证模块
-const API_BASE = '';
+export const API_BASE = '';
 let tempUserEmail = '';
 let modalControlsInitialized = false;
+let loginPromptOverlay = null;
+let toastContainer = null;
+let toastStylesInjected = false;
+
+export function getAuthToken() {
+    return localStorage.getItem('token');
+}
+
+export function isAuthenticated() {
+    return !!getAuthToken();
+}
 
 // 显示错误提示
 function showError(inputId, errorId, message) {
@@ -287,6 +298,152 @@ function setupAuth() {
     setupAuthModalControls();
 }
 
+export function openAuthModal() {
+    const modal = document.getElementById('auth-modal');
+    const backdrop = document.querySelector('.backdrop');
+
+    if (!modal || !backdrop) return;
+
+    modal.classList.remove('hidden');
+    backdrop.classList.remove('hidden');
+}
+
+export function clearAuthSession() {
+    localStorage.removeItem('user');
+    localStorage.removeItem('token');
+}
+
+export function showLoginPrompt(message = '请先登录以继续...') {
+    if (loginPromptOverlay) {
+        const messageEl = loginPromptOverlay.querySelector('.custom-confirm-message');
+        if (messageEl) messageEl.textContent = message;
+        loginPromptOverlay.classList.add('active');
+        return;
+    }
+
+    const overlay = document.createElement('div');
+    overlay.className = 'custom-confirm-overlay login-required-overlay';
+
+    const box = document.createElement('div');
+    box.className = 'custom-confirm-box';
+
+    const title = document.createElement('div');
+    title.className = 'custom-confirm-title';
+    title.textContent = '登录提醒';
+
+    const msg = document.createElement('div');
+    msg.className = 'custom-confirm-message';
+    msg.textContent = message;
+
+    const buttons = document.createElement('div');
+    buttons.className = 'custom-confirm-buttons';
+
+    const loginBtn = document.createElement('button');
+    loginBtn.className = 'confirm-btn-yes';
+    loginBtn.textContent = '立即登录';
+    loginBtn.onclick = () => {
+        overlay.classList.remove('active');
+        setTimeout(() => overlay.remove(), 300);
+        loginPromptOverlay = null;
+        openAuthModal();
+    };
+
+    const cancelBtn = document.createElement('button');
+    cancelBtn.className = 'confirm-btn-no';
+    cancelBtn.textContent = '取消';
+    cancelBtn.onclick = () => {
+        overlay.classList.remove('active');
+        setTimeout(() => overlay.remove(), 300);
+        loginPromptOverlay = null;
+    };
+
+    buttons.appendChild(loginBtn);
+    buttons.appendChild(cancelBtn);
+
+    box.appendChild(title);
+    box.appendChild(msg);
+    box.appendChild(buttons);
+    overlay.appendChild(box);
+
+    overlay.addEventListener('click', (e) => {
+        if (e.target === overlay) {
+            overlay.classList.remove('active');
+            setTimeout(() => overlay.remove(), 300);
+            loginPromptOverlay = null;
+        }
+    });
+
+    document.body.appendChild(overlay);
+    requestAnimationFrame(() => overlay.classList.add('active'));
+    loginPromptOverlay = overlay;
+}
+
+export function ensureAuthenticated(options = {}) {
+    const { message } = options || {};
+    const token = getAuthToken();
+    if (token) return token;
+    showLoginPrompt(message);
+    return null;
+}
+
+function ensureToastContainer() {
+    if (toastContainer) return toastContainer;
+
+    if (!toastStylesInjected) {
+        const style = document.createElement('style');
+        style.textContent = `
+.toast-container { position: fixed; top: 16px; right: 16px; display: flex; flex-direction: column; gap: 10px; z-index: 11000; pointer-events: none; }
+.toast-message { min-width: 200px; max-width: 340px; padding: 12px 18px; border-radius: 8px; color: #fff; font-size: 14px; line-height: 1.4; box-shadow: 0 8px 20px rgba(0,0,0,0.15); opacity: 0; transform: translateY(-8px); transition: opacity .25s ease, transform .25s ease; pointer-events: auto; }
+.toast-message.show { opacity: 1; transform: translateY(0); }
+.toast-info { background: rgba(60, 60, 60, 0.92); }
+.toast-success { background: rgba(46, 125, 50, 0.92); }
+.toast-error { background: rgba(211, 72, 72, 0.95); }
+.toast-warning { background: rgba(196, 140, 30, 0.95); }
+`;
+        document.head.appendChild(style);
+        toastStylesInjected = true;
+    }
+
+    toastContainer = document.createElement('div');
+    toastContainer.className = 'toast-container';
+    document.body.appendChild(toastContainer);
+    return toastContainer;
+}
+
+export function showToast(message, options = {}) {
+    if (!message) return;
+    const { type = 'info', duration = 3200 } = options;
+    const container = ensureToastContainer();
+    const toast = document.createElement('div');
+    toast.className = `toast-message toast-${type}`;
+    toast.textContent = message;
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+        toast.classList.add('show');
+    });
+
+    const removeToast = () => {
+        toast.classList.remove('show');
+        setTimeout(() => {
+            toast.remove();
+            if (!container.childElementCount) {
+                if (container.parentElement) {
+                    container.parentElement.removeChild(container);
+                }
+                toastContainer = null;
+            }
+        }, 250);
+    };
+
+    const hideTimer = setTimeout(removeToast, duration);
+
+    toast.addEventListener('click', () => {
+        clearTimeout(hideTimer);
+        removeToast();
+    });
+}
+
 // 关闭弹窗
 function closeModal() {
     const modal = document.getElementById('auth-modal');
@@ -380,15 +537,12 @@ export function setupAuthModalControls() {
 
     if (!modal || !backdrop) return;
 
-    const openModal = (e) => {
-        e.preventDefault();
-        e.stopPropagation();
-        modal.classList.remove('hidden');
-        backdrop.classList.remove('hidden');
-    };
-
     document.querySelectorAll('.btn-open-auth').forEach(btn => {
-        btn.addEventListener('click', openModal);
+        btn.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+            openAuthModal();
+        });
     });
 
     document.querySelectorAll('[data-close-auth]').forEach(btn => {

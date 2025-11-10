@@ -1,3 +1,6 @@
+import { addFavorite, ApiError, fetchFavorites, fetchScene, removeFavorite, submitSceneVote } from './api.js';
+import { clearAuthSession, ensureAuthenticated, getAuthToken, showToast } from './auth.js';
+
 export class MapManager {
   constructor() {
     this.map = null;
@@ -21,7 +24,8 @@ export class MapManager {
       '赵州桥': '河北省'
     };
     this._onSmartSearchEvent = this.onSmartSearchEvent.bind(this);
-    this.favoriteSpots = new Set(JSON.parse(localStorage.getItem('favoriteSpots') || '[]'));
+    this.favoriteSpots = new Map();
+    this._favoritesLoaded = false;
   }
 
   /** 初始化地图 */
@@ -65,6 +69,8 @@ export class MapManager {
     this.loadPlugins();
     this.bindToolbarEvents();
     this.loadChinaProvinces(); // 加载全国省界
+
+    await this.syncFavorites();
   }
 
   /** 等待 AMap SDK 加载完毕 */
@@ -90,7 +96,7 @@ export class MapManager {
   onSmartSearchEvent(e) {
     const kw = (e && e.detail && e.detail.keyword || '').trim();
     if (!kw) {
-      alert('请输入景点或省份名称');
+      showToast('请输入景点或省份名称', { type: 'warning' });
       return;
     }
     // ✅ 调用你已有的智能搜索逻辑
@@ -179,8 +185,11 @@ export class MapManager {
 
     if (favoritesBtn && favoritesModal && favoritesList && closeFavoritesBtn) {
       // ✅ 点击按钮才打开弹窗
-      favoritesBtn.addEventListener('click', () => {
-        const list = [...this.favoriteSpots];
+      favoritesBtn.addEventListener('click', async () => {
+        if (!ensureAuthenticated({ message: '请先登录以查看收藏列表' })) return;
+        await this.syncFavorites();
+        if (!getAuthToken()) return;
+        const list = [...this.favoriteSpots.keys()];
         favoritesList.innerHTML = list.length
           ? list.map(n => `<li class="fav-item" data-spot="${n}">${n}</li>`).join('')
           : '<li style="color:#b58929;">暂无收藏，去详情页点“收藏景点”吧～</li>';
@@ -201,7 +210,7 @@ export class MapManager {
         if (province) {
           this.handleSmartSearch(province);
         } else {
-          alert(`未找到 ${spot} 对应的省份映射`);
+          showToast(`未找到 ${spot} 对应的省份映射`, { type: 'warning' });
         }
         favoritesModal.classList.add('hidden');
       });
@@ -356,7 +365,7 @@ export class MapManager {
     }
   }
 
-  showDetailPanel(item) {
+  async showDetailPanel(item) {
     const panel = document.getElementById('detail-panel');
     document.getElementById('detail-title').textContent = item.name;
 
@@ -464,18 +473,24 @@ export class MapManager {
       favBtn.style.display = 'inline-block';
       const isFav = this.favoriteSpots.has(spotName);
       favBtn.textContent = isFav ? '取消收藏' : '收藏景点';
+      favBtn.dataset.favorite = isFav ? 'true' : 'false';
     };
 
     // 点击切换收藏状态
-    favBtn.onclick = () => {
+    favBtn.onclick = async () => {
       const spotName = spots[currentIndex]?.name;
       if (!spotName) return;
-      if (this.favoriteSpots.has(spotName)) {
-        this.favoriteSpots.delete(spotName);
-      } else {
-        this.favoriteSpots.add(spotName);
+      if (!ensureAuthenticated({ message: '请先登录以收藏景点' })) return;
+      const wasFavorite = this.favoriteSpots.has(spotName);
+      try {
+        const nowFavorite = await this.toggleFavoriteSpot(spotName);
+        favBtn.textContent = nowFavorite ? '取消收藏' : '收藏景点';
+        showToast(nowFavorite ? `已收藏「${spotName}」` : `已取消收藏「${spotName}」`, {
+          type: nowFavorite ? 'success' : 'info'
+        });
+      } catch (error) {
+        this.handleRequestError(error, wasFavorite ? '取消收藏失败，请稍后重试' : '收藏失败，请稍后重试');
       }
-      this.saveFavoriteSpots();
       syncFavBtn();
     };
 
@@ -484,89 +499,119 @@ export class MapManager {
     prevBtn.addEventListener('click', syncFavBtn);
     nextBtn.addEventListener('click', syncFavBtn);
 
-    // ====== 点赞/点踩逻辑（完全隔离每个景点 + 正确初始化显示） ======
+    // ====== 点赞/点踩逻辑（同步服务器统计） ======
     const likeBtn = document.getElementById('like-btn');
     const dislikeBtn = document.getElementById('dislike-btn');
     const likeCountEl = document.getElementById('like-count');
     const dislikeCountEl = document.getElementById('dislike-count');
 
-    // 不克隆节点，只移除旧事件（避免失去计数字段）
     likeBtn.replaceWith(likeBtn);
     dislikeBtn.replaceWith(dislikeBtn);
 
-    // 重新获取克隆后的元素
     const newLikeBtn = document.getElementById('like-btn');
     const newDislikeBtn = document.getElementById('dislike-btn');
 
-    // === 核心函数：绑定当前景点的按钮逻辑 ===
-    const bindVoteButtons = (spotName) => {
-      // 初始化或读取旧数据
-      if (!this.votes.has(spotName)) {
-        this.votes.set(spotName, { vote: null, likes: 0, dislikes: 0 });
-      }
-      const data = this.votes.get(spotName);
+    const updateVoteUI = (state) => {
+      likeCountEl.textContent = state.likes ?? 0;
+      dislikeCountEl.textContent = state.dislikes ?? 0;
+      newLikeBtn.classList.toggle('active', state.vote === 'like');
+      newDislikeBtn.classList.toggle('active', state.vote === 'dislike');
+    };
 
-      // ✅ 初始化显示（重要！）
-      likeCountEl.textContent = data.likes;
-      dislikeCountEl.textContent = data.dislikes;
-      newLikeBtn.classList.toggle('active', data.vote === 'like');
-      newDislikeBtn.classList.toggle('active', data.vote === 'dislike');
+    const bindVoteButtons = async (spotName) => {
+      if (!spotName) return;
 
-      // 点赞逻辑
-      newLikeBtn.onclick = () => {
-        if (data.vote === 'like') {
-          // 再次点击 = 取消赞
-          data.likes = Math.max(0, data.likes - 1);
-          data.vote = null;
-          this.showFloatingFeedback(newLikeBtn, '-1', '#999');
-        } else {
-          // 点赞前如果踩过，取消踩
-          if (data.vote === 'dislike') {
-            data.dislikes = Math.max(0, data.dislikes - 1);
-            this.showFloatingFeedback(newDislikeBtn, '-1', '#999');
+      let data = this.votes.get(spotName);
+
+      if (!data || !data.synced) {
+        try {
+          const scene = await fetchScene(this.getSceneIdentifier(spotName));
+          if (scene) {
+            data = {
+              vote: data?.vote ?? null,
+              likes: scene.likes_count ?? 0,
+              dislikes: scene.dislikes_count ?? 0,
+              synced: true,
+            };
           }
-          data.likes += 1;
-          data.vote = 'like';
-          this.showFloatingFeedback(newLikeBtn, '+1', '#c59b34 ');
+        } catch (error) {
+          this.handleRequestError(error, null, { suppressAlert: true });
         }
 
-        this.votes.set(spotName, { ...data }); // 保存数据
-        // ✅ 立即刷新 UI
-        likeCountEl.textContent = data.likes;
-        dislikeCountEl.textContent = data.dislikes;
-        newLikeBtn.classList.toggle('active', data.vote === 'like');
-        newDislikeBtn.classList.toggle('active', data.vote === 'dislike');
-      };
+        if (!data) {
+          data = { vote: null, likes: 0, dislikes: 0, synced: false };
+        }
 
-      // 点踩逻辑
-      newDislikeBtn.onclick = () => {
-        if (data.vote === 'dislike') {
-          // 再次点击 = 取消踩
-          data.dislikes = Math.max(0, data.dislikes - 1);
-          data.vote = null;
-          this.showFloatingFeedback(newDislikeBtn, '-1', '#999');
-        } else {
-          // 点踩前如果赞过，取消赞
-          if (data.vote === 'like') {
-            data.likes = Math.max(0, data.likes - 1);
+        this.votes.set(spotName, data);
+      }
+
+      updateVoteUI(data);
+
+      const sendVote = async (action) => {
+        if (!ensureAuthenticated({ message: '请先登录以评价景点' })) return;
+
+        const previousVote = data.vote;
+        try {
+          const payload = await submitSceneVote(this.getSceneIdentifier(spotName), action);
+          const scene = payload?.scene;
+          const currentVote = payload?.currentVote || null;
+          data = {
+            vote: currentVote,
+            likes: scene?.likes_count ?? data.likes,
+            dislikes: scene?.dislikes_count ?? data.dislikes,
+            synced: true,
+          };
+          this.votes.set(spotName, data);
+          updateVoteUI(data);
+
+          if (previousVote !== currentVote) {
+            let toastMessage = '';
+            let toastType = 'success';
+            if (currentVote === 'like') {
+              toastMessage = `已为「${spotName}」点了赞`;
+              toastType = 'success';
+            } else if (currentVote === 'dislike') {
+              toastMessage = `已为「${spotName}」点了不喜欢`;
+              toastType = 'warning';
+            } else {
+              toastMessage = `已撤销对「${spotName}」的评价`;
+              toastType = 'info';
+            }
+            showToast(toastMessage, { type: toastType });
+          }
+
+          if (currentVote === 'like' && previousVote !== 'like') {
+            this.showFloatingFeedback(newLikeBtn, '+1', '#c59b34 ');
+          } else if (previousVote === 'like' && currentVote !== 'like') {
             this.showFloatingFeedback(newLikeBtn, '-1', '#999');
           }
-          data.dislikes += 1;
-          data.vote = 'dislike';
-          this.showFloatingFeedback(newDislikeBtn, '+1', '#d96b6b');
-        }
 
-        this.votes.set(spotName, { ...data }); // 保存数据
-        likeCountEl.textContent = data.likes;
-        dislikeCountEl.textContent = data.dislikes;
-        newLikeBtn.classList.toggle('active', data.vote === 'like');
-        newDislikeBtn.classList.toggle('active', data.vote === 'dislike');
+          if (currentVote === 'dislike' && previousVote !== 'dislike') {
+            this.showFloatingFeedback(newDislikeBtn, '+1', '#d96b6b');
+          } else if (previousVote === 'dislike' && currentVote !== 'dislike') {
+            this.showFloatingFeedback(newDislikeBtn, '-1', '#999');
+          }
+        } catch (error) {
+          this.handleRequestError(error, '提交评价失败，请稍后重试');
+        }
+      };
+
+      newLikeBtn.onclick = async () => {
+        const current = this.votes.get(spotName) || data;
+        const action = current.vote === 'like' ? 'clear' : 'like';
+        await sendVote(action);
+      };
+
+      newDislikeBtn.onclick = async () => {
+        const current = this.votes.get(spotName) || data;
+        const action = current.vote === 'dislike' ? 'clear' : 'dislike';
+        await sendVote(action);
       };
     };
 
     // ✅ 初始化绑定当前景点
     let currentSpot = spots[currentIndex]?.name || item.name;
-    bindVoteButtons(currentSpot);
+    await bindVoteButtons(currentSpot);
 
     // ✅ 每次切换轮播重新绑定
     [prevBtn, nextBtn].forEach(btn => {
@@ -826,7 +871,10 @@ export class MapManager {
   }
 
   handleSmartSearch(keyword) {
-    if (!keyword) return alert('请输入景点或省份名称');
+    if (!keyword) {
+      showToast('请输入景点或省份名称', { type: 'warning' });
+      return;
+    }
 
     // 先尝试匹配景点所属省份
     let province = this.spotToProvince[keyword];
@@ -837,7 +885,7 @@ export class MapManager {
     }
 
     if (!province) {
-      alert('未找到相关景点或省份，请重新输入');
+      showToast('未找到相关景点或省份，请重新输入', { type: 'warning' });
       return;
     }
 
@@ -852,7 +900,7 @@ export class MapManager {
 
     const center = provinceCenters[province];
     if (!center) {
-      alert(`暂未定义 ${province} 的中心坐标`);
+      showToast(`暂未定义 ${province} 的中心坐标`, { type: 'warning' });
       return;
     }
 
@@ -925,7 +973,10 @@ export class MapManager {
 
   /** 执行搜索 */
   handleSearch(keyword) {
-    if (!keyword) return alert('请输入景点或省份名称');
+    if (!keyword) {
+      showToast('请输入景点或省份名称', { type: 'warning' });
+      return;
+    }
 
     let province = this.spotToProvince[keyword];
     if (!province) {
@@ -933,7 +984,7 @@ export class MapManager {
     }
 
     if (!province) {
-      alert('未找到相关景点或省份');
+      showToast('未找到相关景点或省份', { type: 'warning' });
       return;
     }
 
@@ -946,7 +997,10 @@ export class MapManager {
     };
 
     const center = provinceCenters[province];
-    if (!center) return alert(`暂未定义 ${province} 的坐标`);
+    if (!center) {
+      showToast(`暂未定义 ${province} 的坐标`, { type: 'warning' });
+      return;
+    }
 
     // 地图移动并放大
     this.map.setZoomAndCenter(7, center);
@@ -975,7 +1029,75 @@ export class MapManager {
     panel.classList.remove('hidden');
     panel.classList.add('show');
   }
-  saveFavoriteSpots() {
-    localStorage.setItem('favoriteSpots', JSON.stringify([...this.favoriteSpots]));
+  async syncFavorites() {
+    const token = getAuthToken();
+    if (!token) {
+      if (this.favoriteSpots.size > 0) {
+        this.favoriteSpots.clear();
+      }
+      this._favoritesLoaded = true;
+      return;
+    }
+
+    try {
+      const favorites = await fetchFavorites();
+      this.favoriteSpots.clear();
+      favorites.forEach(item => {
+        const key = item?.name || item?.slug || item?.sceneSlug;
+        if (key) {
+          this.favoriteSpots.set(key, item);
+        }
+      });
+      this._favoritesLoaded = true;
+    } catch (error) {
+      this.handleRequestError(error, null, { suppressAlert: true });
+    }
+  }
+
+  async toggleFavoriteSpot(spotName) {
+    const identifier = this.getSceneIdentifier(spotName);
+    const isFavorite = this.favoriteSpots.has(spotName);
+
+    if (isFavorite) {
+      await removeFavorite(identifier);
+      this.favoriteSpots.delete(spotName);
+      return false;
+    }
+
+    const favorite = await addFavorite(identifier);
+    if (favorite) {
+      this.favoriteSpots.set(spotName, favorite);
+    } else {
+      // 如果服务器未返回详细信息，至少标记为已收藏
+      this.favoriteSpots.set(spotName, { name: spotName, slug: spotName });
+    }
+    return true;
+  }
+
+  getSceneIdentifier(spotName) {
+    if (!spotName) return {};
+    return { sceneSlug: String(spotName).trim() };
+  }
+
+  handleRequestError(error, fallbackMessage, options = {}) {
+    const { suppressAlert = false } = options || {};
+    if (!error) return;
+
+    const isAuthError = (error instanceof ApiError && error.code === 'AUTH_REQUIRED') || error?.status === 401;
+    if (isAuthError) {
+      clearAuthSession();
+      if (!suppressAlert) {
+        ensureAuthenticated({ message: '请先登录以继续...' });
+      }
+      return;
+    }
+
+    console.warn('API request error:', error);
+    if (suppressAlert) return;
+
+    const message = (fallbackMessage && String(fallbackMessage).trim()) || (error?.message && String(error.message).trim()) || '操作失败，请稍后再试';
+    if (message) {
+      showToast(message, { type: 'error' });
+    }
   }
 }

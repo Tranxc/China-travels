@@ -1,0 +1,139 @@
+import { getSceneByIdentifier } from '../services/database.js';
+import { HttpError, jsonResponse, optionalAuth, preflightResponse, requireAuth } from '../utils/auth.js';
+
+const METHODS = ['GET', 'POST', 'OPTIONS'];
+
+async function fetchScenes(env, filter = {}) {
+    const params = [];
+    let whereClause = '';
+
+    if (filter.sceneId || filter.sceneSlug) {
+        const scene = await getSceneByIdentifier(env.china_travel_db, filter);
+        if (!scene) throw new HttpError(404, '景点不存在');
+        whereClause = 'WHERE s.id = ?';
+        params.push(scene.id);
+    }
+
+    const query = `
+		SELECT
+			s.id,
+			s.slug,
+			s.name,
+			s.summary,
+			s.cover_url,
+			s.province,
+			s.created_at,
+			s.updated_at,
+			COALESCE(fav.count, 0) AS favorites_count,
+			COALESCE(v.likes, 0) AS likes_count,
+			COALESCE(v.dislikes, 0) AS dislikes_count
+		FROM scenes s
+		LEFT JOIN (
+			SELECT scene_id, COUNT(*) AS count
+			FROM favorites
+			GROUP BY scene_id
+		) AS fav ON fav.scene_id = s.id
+		LEFT JOIN (
+			SELECT scene_id,
+				SUM(CASE WHEN vote = 'like' THEN 1 ELSE 0 END) AS likes,
+				SUM(CASE WHEN vote = 'dislike' THEN 1 ELSE 0 END) AS dislikes
+			FROM scene_votes
+			GROUP BY scene_id
+		) AS v ON v.scene_id = s.id
+		${whereClause}
+		ORDER BY s.created_at DESC
+	`;
+
+    const { results } = await env.china_travel_db.prepare(query).bind(...params).all();
+    return results;
+}
+
+async function handleGet(request, env) {
+    const { searchParams } = new URL(request.url);
+    const sceneId = searchParams.get('sceneId');
+    const sceneSlug = searchParams.get('sceneSlug') || searchParams.get('scene');
+
+    const scenes = await fetchScenes(env, { sceneId, sceneSlug });
+
+    if (sceneId || sceneSlug) {
+        return jsonResponse({ success: true, scene: scenes[0] || null });
+    }
+    return jsonResponse({ success: true, scenes });
+}
+
+async function handleVote(request, env, user) {
+    const payload = await request.json();
+    if (!payload) throw new HttpError(400, '请求体不能为空');
+
+    const scene = await getSceneByIdentifier(env.china_travel_db, {
+        sceneId: payload.sceneId,
+        sceneSlug: payload.sceneSlug || payload.scene,
+    });
+    if (!scene) throw new HttpError(404, '景点不存在');
+
+    const vote = payload.vote;
+    if (!['like', 'dislike', 'clear'].includes(vote)) {
+        throw new HttpError(400, '无效的投票类型');
+    }
+
+    if (vote === 'clear') {
+        await env.china_travel_db
+            .prepare('DELETE FROM scene_votes WHERE scene_id = ? AND user_id = ?')
+            .bind(scene.id, user.id)
+            .run();
+    } else {
+        await env.china_travel_db.prepare(`
+			INSERT INTO scene_votes (scene_id, user_id, vote)
+			VALUES (?, ?, ?)
+			ON CONFLICT(scene_id, user_id) DO UPDATE SET vote = excluded.vote, updated_at = CURRENT_TIMESTAMP
+		`).bind(scene.id, user.id, vote).run();
+    }
+
+    const [updated] = await fetchScenes(env, { sceneId: scene.id });
+
+    const current = await env.china_travel_db
+        .prepare('SELECT vote FROM scene_votes WHERE scene_id = ? AND user_id = ?')
+        .bind(scene.id, user.id)
+        .first();
+
+    return jsonResponse({
+        success: true,
+        scene: updated,
+        currentVote: current?.vote || null,
+    });
+}
+
+export async function onRequest(context) {
+    const { request, env } = context;
+
+    if (!METHODS.includes(request.method)) {
+        return jsonResponse({ error: 'Method not allowed' }, 405);
+    }
+
+    if (request.method === 'OPTIONS') {
+        return preflightResponse();
+    }
+
+    try {
+        if (request.method === 'GET') {
+            const response = await handleGet(request, env);
+            const auth = optionalAuth(request);
+            if (auth && response?.headers) {
+                response.headers.set('X-User-Id', String(auth.user.id));
+            }
+            return response;
+        }
+
+        if (request.method === 'POST') {
+            const { user } = requireAuth(request);
+            return await handleVote(request, env, user);
+        }
+
+        return jsonResponse({ error: 'Method not allowed' }, 405);
+    } catch (error) {
+        if (error instanceof HttpError) {
+            return jsonResponse({ error: error.message }, error.status);
+        }
+        return jsonResponse({ error: error?.message || '服务器错误' }, 500);
+    }
+}

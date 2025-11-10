@@ -1,3 +1,5 @@
+import { showToast } from './auth.js';
+
 export class MapEvents {
   constructor(mapManager) {
     this.map = mapManager.map;
@@ -39,8 +41,12 @@ export class MapEvents {
       const geo = new AMap.Geolocation({ showButton: true });
       this.map.addControl(geo);
       geo.getCurrentPosition((status, result) => {
-        if (status === 'complete') this.map.setCenter(result.position);
-        else alert('定位失败');
+        if (status === 'complete') {
+          this.map.setCenter(result.position);
+          showToast('已定位到当前位置', { type: 'success' });
+        } else {
+          showToast('定位失败，请检查定位设置后重试', { type: 'error' });
+        }
       });
     });
   }
