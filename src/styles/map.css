@@ -512,16 +512,12 @@ body::before {
   left: 0;
   width: 100%;
   height: 100%;
-  background-image: url("/bg-texture.avif");
-  /* ✅ 山水画/宣纸纹理 */
+  background-image: url("https://assets.235800.xyz/assets/bg-texture.avif");
   background-size: cover;
   background-position: center;
   opacity: 0.2;
-  /* 调整透明度 */
   pointer-events: none;
-  /* 不影响操作 */
   z-index: -1;
-  /* 放在所有元素下 */
 }
 
 /* 地图整体容器 */
@@ -960,7 +956,7 @@ button:hover {
 #marker-info-panel {
   background:
     linear-gradient(rgba(255, 252, 240, 0.961), rgba(255, 252, 240, 0.92)),
-    url("/right-panel-bg.avif");
+    url("https://assets.235800.xyz/assets/right-panel-bg.avif");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
@@ -1069,7 +1065,7 @@ button:hover {
   height: 95vh;
   background:
     linear-gradient(rgba(255, 252, 240, 0.669), rgba(255, 252, 240, 0.596)),
-    url("/paper-texture.avif");
+    url("https://assets.235800.xyz/assets/paper-texture.avif");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;

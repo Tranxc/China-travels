@@ -32,7 +32,7 @@ function copyComponentsPlugin() {
 
       // 复制其他组件
       const otherComponents = ['auth-modal.html', 'home-page.html', 'login-page.html',
-        'mountain-poem.html', 'scene-drawer.html', 'map-toolbar.html']
+        'scene-drawer.html', 'map-toolbar.html']
       mkdirSync('dist/src/components', { recursive: true })
       otherComponents.forEach(file => {
         try {
@@ -46,7 +46,7 @@ function copyComponentsPlugin() {
 export default defineConfig({
   root: '.',
   base: './',
-  publicDir: 'assets',
+  publicDir: false,
   server: {
     port: 5173,
     open: '/index.html',

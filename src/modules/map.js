@@ -1,5 +1,6 @@
 import { addFavorite, ApiError, fetchFavorites, fetchScene, removeFavorite, submitSceneVote } from './api.js';
 import { clearAuthSession, ensureAuthenticated, getAuthToken, showToast } from './auth.js';
+import { resolveAssetUrl } from '../config/assets.js';
 
 const PROVINCE_METADATA = [
   {
@@ -565,22 +566,22 @@ export class MapManager {
     // 模拟每个省市的景点
     const scenicSpots = {
       '河北省': [
-        { name: '避暑山庄', img: '../../assets/spots/Hebei-bishushanzhuang.avif' },
-        { name: '赵州桥', img: '../../assets/spots/Hebei-ZhaozhouBridge.avif' }
+        { name: '避暑山庄', img: resolveAssetUrl('assets/spots/Hebei-bishushanzhuang.avif') },
+        { name: '赵州桥', img: resolveAssetUrl('assets/spots/Hebei-ZhaozhouBridge.avif') }
       ],
       '天津市': [
-        { name: '意大利风情区', img: '../../assets/spots/Tianjin-Italian.avif' },
-        { name: '天津之眼', img: '../../assets/spots/Tianjin-the-ferris-wheel.avif' }
+        { name: '意大利风情区', img: resolveAssetUrl('assets/spots/Tianjin-Italian.avif') },
+        { name: '天津之眼', img: resolveAssetUrl('assets/spots/Tianjin-the-ferris-wheel.avif') }
       ],
       '北京市': [
-        { name: '故宫', img: '../../assets/spots/Beijing_one.avif' },
-        { name: '长城', img: '../../assets/spots//Beijing_Badaling.avif' },
-        { name: '颐和园', img: '../../assets/spots/Beijing-summer-palace.avif' }
+        { name: '故宫', img: resolveAssetUrl('assets/spots/Beijing_Gugong.avif') },
+        { name: '长城', img: resolveAssetUrl('assets/spots/Beijing_Badaling.avif') },
+        { name: '颐和园', img: resolveAssetUrl('assets/spots/Beijing-summer-palace.avif') }
       ],
       '上海市': [
-        { name: '外滩', img: '../../assets/spots/Shanghai-waitan.avif' },
-        { name: '东方明珠', img: '../../assets/spots/Shanghai-dongfangmingzhu.avif' },
-        { name: '豫园', img: '../../assets/spots/Shanghai-yuyuan.avif' }
+        { name: '外滩', img: resolveAssetUrl('assets/spots/Shanghai-waitan.avif') },
+        { name: '东方明珠', img: resolveAssetUrl('assets/spots/Shanghai-dongfangmingzhu.avif') },
+        { name: '豫园', img: resolveAssetUrl('assets/spots/Shanghai-yuyuan.avif') }
       ],
     };
 

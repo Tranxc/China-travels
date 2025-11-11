@@ -66,7 +66,7 @@ body {
 .hero {
   position: relative;
   height: 100vh;
-  background: url('/images/Homepage.avif') no-repeat center / cover fixed;
+  background: url('https://assets.235800.xyz/assets/images/Homepage.avif') no-repeat center / cover fixed;
   display: flex;
   align-items: center;
   justify-content: center;

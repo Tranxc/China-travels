@@ -14,55 +14,72 @@ import {
     setupAuthModalControls,
     showToast,
 } from './auth.js';
+import { resolveAssetUrl } from '../config/assets.js';
+
+const DEFAULT_SCENIC_IMAGE = resolveAssetUrl('assets/spots/Beijing_Gugong.avif');
+
+function resolveSceneImages(list) {
+    const resolved = (Array.isArray(list) ? list : [])
+        .map((entry) => {
+            if (typeof entry !== 'string' || !entry.trim()) return null;
+            return resolveAssetUrl(entry);
+        })
+        .filter(Boolean);
+
+    if (resolved.length === 0 && DEFAULT_SCENIC_IMAGE) {
+        return [DEFAULT_SCENIC_IMAGE];
+    }
+    return resolved;
+}
 
 const scenicData = {
     '故宫': {
         desc: '故宫是明清两代的皇家宫殿，见证了中国数百年的历史变迁。',
-        images: ['../assets/spots/Beijing_one.avif'],
+        images: ['assets/spots/Beijing_Gugong.avif'],
     },
     '长城': {
         desc: '长城是中国古代伟大的防御工程，蜿蜒于群山之间，气势磅礴。',
-        images: ['../assets/spots/Beijing_Badaling.avif'],
+        images: ['assets/spots/Beijing_Badaling.avif'],
     },
     '颐和园': {
         desc: '颐和园以其精美的园林设计和丰富的历史文化闻名于世。',
-        images: ['../assets/spots/Beijing-summer-palace.avif'],
+        images: ['assets/spots/Beijing-summer-palace.avif'],
     },
     '天津之眼': {
         desc: '天津之眼是世界上唯一一座建在桥上的摩天轮，俯瞰海河美景。',
-        images: ['../assets/spots/Tianjin-the-ferris-wheel.avif'],
+        images: ['assets/spots/Tianjin-the-ferris-wheel.avif'],
     },
     '意大利风情区': {
         desc: '天津意大利风情区融合了欧洲建筑风格，展现独特的历史魅力。',
-        images: ['../assets/spots/Tianjin-Italian.avif'],
+        images: ['assets/spots/Tianjin-Italian.avif'],
     },
     '避暑山庄': {
         desc: '避暑山庄是清代皇帝的夏季行宫，以其宏伟的建筑和优美的自然景观著称。',
-        images: ['../assets/spots/Hebei-bishushanzhuang.avif'],
+        images: ['assets/spots/Hebei-bishushanzhuang.avif'],
     },
     '赵州桥': {
         desc: '赵州桥是世界上现存最古老的敞肩石拱桥，体现了古代中国高超的建筑技艺。',
-        images: ['../assets/spots/Hebei-ZhaozhouBridge.avif'],
+        images: ['assets/spots/Hebei-ZhaozhouBridge.avif'],
     },
     '外滩': {
         desc: '外滩坐落于上海黄浦江畔，是最具代表性的城市风景线之一。',
-        images: ['../assets/spots/Shanghai-waitan.avif'],
+        images: ['assets/spots/Shanghai-waitan.avif'],
     },
     '东方明珠': {
         desc: '东方明珠塔是上海的标志性建筑，融合了现代科技与传统文化元素。',
-        images: ['../assets/spots/Shanghai-dongfangmingzhu.avif'],
+        images: ['assets/spots/Shanghai-dongfangmingzhu.avif'],
     },
     '豫园': {
         desc: '豫园是典型的江南古典园林，以其精致的布局和丰富的文化内涵著称。',
-        images: ['../assets/spots/Shanghai-yuyuan.avif'],
+        images: ['assets/spots/Shanghai-yuyuan.avif'],
     },
     '广州塔': {
         desc: '广州塔，又称“小蛮腰”，是中国最高的电视塔之一。',
-        images: ['../assets/spots/Beijing_one.avif'],
+        images: ['assets/spots/Beijing_Gugong.avif'],
     },
     默认: {
         desc: '这是一处美丽的风景，等待你探索更多故事。',
-        images: ['../assets/spots/Beijing_one.avif'],
+        images: ['assets/spots/Beijing_Gugong.avif'],
     },
 };
 
@@ -126,11 +143,10 @@ function setupSceneInfo() {
     state.sceneName = rawName;
 
     const info = scenicData[rawName] || scenicData.默认;
-    const images = Array.isArray(info.images) && info.images.length > 0
-        ? info.images
-        : scenicData.默认.images;
-
-    state.carousel.images = images;
+    const resolvedImages = resolveSceneImages(info.images);
+    state.carousel.images = resolvedImages.length
+        ? resolvedImages
+        : resolveSceneImages(scenicData.默认.images);
     state.carousel.current = 0;
 
     if (elements.title) elements.title.textContent = rawName;
