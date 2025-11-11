@@ -94,13 +94,6 @@ export const SCENES = [
     cover_url: 'assets/spots/Shanghai_Yuyuan.avif',
     province: '上海市',
   },
-  {
-    slug: '迪士尼',
-    name: '迪士尼',
-    summary: '奇幻童话乐园，主题园区与夜光幻影秀闻名。',
-    cover_url: 'assets/spots/Shanghai_Disini.avif',
-    province: '上海市',
-  },
   // 山西省
   {
     slug: '平遥古城',
@@ -738,12 +731,13 @@ export const SCENES = [
     province: '香港特别行政区',
   },
   {
-    slug: '迪士尼',
-    name: '迪士尼',
-    summary: '奇妙童话王国，亲子游与梦幻体验乐园。',
+    slug: '香港迪士尼',
+    name: '香港迪士尼',
+    summary: '奇妙童话王国，亲子游与梦幻体验乐园闻名。',
     cover_url: 'assets/spots/HongKong_Disini.avif',
     province: '香港特别行政区',
   },
+
   // 澳门特别行政区
   {
     slug: '大三巴牌坊',
