@@ -324,9 +324,9 @@ export class MapManager {
     // 模拟从数据库读取的数据
     const sampleData = [
       { name: '北京市', position: [116.4074, 39.9042], info: '中国的首都，政治与文化中心。' },
+      { name: '天津市', position: [117.2000, 39.1333], info: '重要的港口城市，历史悠久。' },
       { name: '上海市', position: [121.4737, 31.2304], info: '中国的经济与金融中心。' },
-      { name: '广州市', position: [113.2644, 23.1291], info: '南中国门户城市，岭南文化核心。' },
-      { name: '成都市', position: [104.0668, 30.5728], info: '“天府之国”，美食与休闲之都。' }
+      { name: '河北省', position: [114.5025, 38.0455], info: '环绕北京与天津，历史文化丰富。' }
     ];
 
     this.markers = sampleData.map(item => {
@@ -371,26 +371,30 @@ export class MapManager {
 
     const cityDetails = {
       '北京市': '北京是中华人民共和国的首都，政治文化中心，拥有长城、故宫等历史遗迹。',
+      '天津市': '天津是中国北方重要的港口城市，以其独特的欧陆建筑风格闻名。',
       '上海市': '上海是中国经济中心，以金融、航运和现代化城市景观著称。',
-      '广州市': '广州是南中国重要的港口与商贸城市，岭南文化发源地。',
-      '成都市': '成都以美食、休闲与历史文化闻名，被称为“天府之国”。'
+      '河北省': '河北省环绕北京与天津，拥有避暑山庄、赵州桥等世界文化遗产。',
     };
 
     // 模拟每个省市的景点
     const scenicSpots = {
       '河北省': [
-        { name: '避暑山庄', img: '../assets/spots/hebei1.jpg' },
-        { name: '赵州桥', img: '../assets/spots/hebei2.jpg' }
+        { name: '避暑山庄', img: '../../assets/spots/Hebei-bishushanzhuang.avif' },
+        { name: '赵州桥', img: '../../assets/spots/Hebei-ZhaozhouBridge.avif' }
+      ],
+      '天津市': [
+        { name: '意大利风情区', img: '../../assets/spots/Tianjin-Italian.avif' },
+        { name: '天津之眼', img: '../../assets/spots/Tianjin-the-ferris-wheel.avif' }
       ],
       '北京市': [
-        { name: '故宫', img: '../assets/spots/beijing1.jpg' },
-        { name: '长城', img: '../assets/spots/beijing2.jpg' },
-        { name: '颐和园', img: '../assets/spots/beijing3.jpg' }
+        { name: '故宫', img: '../../assets/spots/Beijing_one.avif' },
+        { name: '长城', img: '../../assets/spots//Beijing_Badaling.avif' },
+        { name: '颐和园', img: '../../assets/spots/Beijing-summer-palace.avif' }
       ],
       '上海市': [
-        { name: '外滩', img: '../assets/spots/shanghai1.jpg' },
-        { name: '东方明珠', img: '../assets/spots/shanghai2.jpg' },
-        { name: '豫园', img: '../assets/spots/shanghai3.jpg' }
+        { name: '外滩', img: '../../assets/spots/Shanghai-waitan.avif' },
+        { name: '东方明珠', img: '../../assets/spots/Shanghai-dongfangmingzhu.avif' },
+        { name: '豫园', img: '../../assets/spots/Shanghai-yuyuan.avif' }
       ],
     };
 
@@ -770,10 +774,20 @@ export class MapManager {
       });
 
       labelMarker.on('click', () => {
+         const cityDetails = {
+           '北京市': '北京是中华人民共和国的首都，政治文化中心，拥有长城、故宫等历史遗迹。',
+           '天津市': '天津是中国北方重要的港口城市，以其独特的欧陆建筑风格闻名。',
+           '上海市': '上海是中国经济中心，以金融、航运和现代化城市景观著称。',
+           '广州市': '广州是南中国重要的港口与商贸城市，岭南文化发源地。',
+           '成都市': '成都以美食、休闲与历史文化闻名，被称为“天府之国”。',
+           '河北省': '河北省环绕北京与天津，拥有避暑山庄、赵州桥等世界文化遗产。',
+           '广东省': '中国改革开放前沿地区，以经济活力和岭南文化著称。',
+           '四川省': '“天府之国”，自然与人文资源丰富，都江堰与宽窄巷子闻名中外。'
+        };
         const item = {
           name: p.name,
           position: p.center,
-          info: `${p.name} 是中国的重要省级行政区，拥有丰富的自然与人文景观。`
+          info: cityDetails[p.name] ||`${p.name} 是中国的重要省级行政区，拥有丰富的自然与人文景观。`
         };
 
         // 打开右侧信息窗
