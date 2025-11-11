@@ -17,16 +17,16 @@ async function handleGet(request, env, user) {
     }
 
     const query = `
-		SELECT f.id, f.scene_id, f.created_at,
+		SELECT f.id, f.scene_slug, f.created_at,
 			   s.slug, s.name, s.summary, s.cover_url, s.province
 		FROM favorites f
-		INNER JOIN scenes s ON s.id = f.scene_id
+		INNER JOIN scenes s ON s.slug = f.scene_slug
 		WHERE f.user_id = ?
-		${sceneRecord ? 'AND f.scene_id = ?' : ''}
+		${sceneRecord ? 'AND f.scene_slug = ?' : ''}
 		ORDER BY f.created_at DESC
 	`;
 
-    const bindParams = sceneRecord ? [user.id, sceneRecord.id] : [user.id];
+    const bindParams = sceneRecord ? [user.id, sceneRecord.slug] : [user.id];
     const { results } = await env.china_travel_db.prepare(query).bind(...bindParams).all();
 
     return jsonResponse({ success: true, favorites: results });
@@ -51,8 +51,8 @@ async function handlePost(request, env, user) {
     const scene = await resolveScene(env, payload);
 
     const insert = await env.china_travel_db
-        .prepare('INSERT OR IGNORE INTO favorites (user_id, scene_id) VALUES (?, ?)')
-        .bind(user.id, scene.id)
+        .prepare('INSERT OR IGNORE INTO favorites (user_id, scene_slug) VALUES (?, ?)')
+        .bind(user.id, scene.slug)
         .run();
 
     if (!insert.success) {
@@ -60,12 +60,12 @@ async function handlePost(request, env, user) {
     }
 
     const { results } = await env.china_travel_db.prepare(`
-		SELECT f.id, f.scene_id, f.created_at,
+		SELECT f.id, f.scene_slug, f.created_at,
 			   s.slug, s.name, s.summary, s.cover_url, s.province
 		FROM favorites f
-		INNER JOIN scenes s ON s.id = f.scene_id
-		WHERE f.user_id = ? AND f.scene_id = ?
-	`).bind(user.id, scene.id).all();
+		INNER JOIN scenes s ON s.slug = f.scene_slug
+		WHERE f.user_id = ? AND f.scene_slug = ?
+	`).bind(user.id, scene.slug).all();
 
     return jsonResponse({ success: true, favorite: results[0], inserted: insert.meta?.changes > 0 });
 }
@@ -77,8 +77,8 @@ async function handleDelete(request, env, user) {
     const scene = await resolveScene(env, payload);
 
     const result = await env.china_travel_db
-        .prepare('DELETE FROM favorites WHERE user_id = ? AND scene_id = ?')
-        .bind(user.id, scene.id)
+        .prepare('DELETE FROM favorites WHERE user_id = ? AND scene_slug = ?')
+        .bind(user.id, scene.slug)
         .run();
 
     return jsonResponse({ success: true, removed: !!result.meta?.changes });

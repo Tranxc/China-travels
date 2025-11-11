@@ -47,7 +47,7 @@ export const PROVINCE_METADATA = [
     name: '上海市',
     center: [121.47, 31.23],
     labelCenter: [121.6, 31.3],
-    searchKeys: ['上海', '沪', '外滩', '东方明珠', '豫园', '迪士尼'],
+    searchKeys: ['上海', '沪', '外滩', '东方明珠', '豫园'],
   },
   {
     name: '江苏省',

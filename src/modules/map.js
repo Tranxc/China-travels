@@ -3,6 +3,7 @@ import { clearAuthSession, ensureAuthenticated, getAuthToken, showToast } from '
 import { resolveAssetUrl } from '../config/assets.js';
 import { PROVINCE_METADATA } from '../data/provinces.js';
 import { PROVINCE_TAGLINES, DEFAULT_PROVINCE_TAGLINE } from '../data/province-taglines.js';
+import { PROVINCE_CAPITALS } from '../data/province-capitals.js';
 import { SCENES as STATIC_SCENES } from '../../scripts/scenes-data.js';
 
 const PROVINCE_CENTERS = {};
@@ -20,6 +21,7 @@ PROVINCE_METADATA.forEach((province) => {
 });
 
 const ALL_SEARCH_KEYWORDS = Object.keys(PROVINCE_KEYWORD_MAP);
+const SMALL_PROVINCES = new Set(['上海市', '北京市', '天津市', '香港特别行政区', '澳门特别行政区', '海南省']);
 
 const STATIC_SCENE_LIST = Array.isArray(STATIC_SCENES) ? STATIC_SCENES : [];
 const STATIC_SCENES_BY_PROVINCE = new Map();
@@ -76,7 +78,7 @@ export class MapManager {
     await this.waitForAMap();
 
     this.map = new AMap.Map('map-container', {
-      zoom: 4.5,
+      zoom: 5.2,
       center: [104.1954, 35.8617],
       viewMode: '3D',
       dragEnable: true,
@@ -84,7 +86,7 @@ export class MapManager {
       rotateEnable: false,
       pitchEnable: false,
       limitBounds: new AMap.Bounds([73.5, 1.0], [135.0, 53.6]),
-      zooms: [4, 6]
+      zooms: [4, 11]
     });
 
     const baseLayer = new AMap.TileLayer({
@@ -92,18 +94,9 @@ export class MapManager {
       opacity: 1,
     });
     this.map.setLayers([baseLayer]);
-
-    // 一层半透明淡黄色蒙版
-    const maskDiv = document.createElement('div');
-    maskDiv.style.cssText = `
-    position: absolute;
-    top: 0; left: 0;
-    width: 100%; height: 100%;
-    background: rgba(247, 238, 203, 0.65); /* 柔和黄系滤镜 */
-    pointer-events: none;
-    z-index: 5;
-  `;
-    this.map.getContainer().appendChild(maskDiv);
+    this.map.setFeatures(['bg', 'water', 'road']);
+    this.map.setMapStyle('amap://styles/whitesmoke');
+    this.applyChinaMask();
 
     this.bindDetailPanelEvents();
     this.bindInfoPanelEvents();
@@ -358,6 +351,7 @@ export class MapManager {
       this.map.setZoom(zoom + 1);
     });
     this.addProvinceLabels();
+    this.addCapitalLabels();
   }
 
 
@@ -669,28 +663,31 @@ export class MapManager {
     const labelLayer = new AMap.LabelsLayer({
       zIndex: 120,
       collision: true,
+      zooms: [4.5, 20],
     });
     this.map.add(labelLayer);
 
     provinces.forEach(p => {
+      const isSmall = SMALL_PROVINCES.has(p.name);
+      const baseStyle = {
+        fontSize: isSmall ? 11 : 13,
+        fontWeight: 600,
+        fillColor: '#2c2c2c',
+        strokeColor: '#f8e8a6',
+        strokeWidth: 2,
+        backgroundColor: 'rgba(255,255,255,0.35)',
+        padding: isSmall ? [1, 4] : [2, 6],
+        borderRadius: 4,
+        shadowColor: 'rgba(0,0,0,0.1)',
+        shadowBlur: 2,
+      };
       const labelMarker = new AMap.LabelMarker({
         position: p.center,
         text: {
-          content: `${this.favorites.has(p.name) ? "⭐ " : ""}${p.name}`,
+          content: `${this.favorites.has(p.name) ? '⭐ ' : ''}${p.name}`,
           direction: 'center',
-          offset: [0, -10],
-          style: {
-            fontSize: 13,
-            fontWeight: 600,
-            fillColor: '#2c2c2c',
-            strokeColor: '#fff',
-            strokeWidth: 2,
-            backgroundColor: 'rgba(255,255,255,0.75)',
-            padding: [2, 6],
-            borderRadius: 4,
-            shadowColor: 'rgba(0,0,0,0.1)',
-            shadowBlur: 2,
-          }
+          offset: [0, isSmall ? -6 : -10],
+          style: baseStyle,
         }
       });
 
@@ -700,10 +697,10 @@ export class MapManager {
           content: text.content, 
           style: {
             ...text.style,
-            fillColor: '#9b6bff',     
-            backgroundColor: 'rgba(255,255,255,0.9)',
+            fillColor: '#9b6bff',
+            backgroundColor: 'rgba(255,255,255,0.55)',
             fontWeight: 700,
-            strokeColor: '#fff5c0',
+            strokeColor: '#fdf1d0',
             strokeWidth: 2
           }
         });
@@ -715,10 +712,10 @@ export class MapManager {
           content: text.content,
           style: {
             ...text.style,
-            fillColor: '#2c2c2c',     
-            backgroundColor: 'rgba(255,255,255,0.75)',
+            fillColor: '#2c2c2c',
+            backgroundColor: 'rgba(255,255,255,0.35)',
             fontWeight: 600,
-            strokeColor: '#fff',
+            strokeColor: '#f8e8a6',
             strokeWidth: 2
           }
         });
@@ -743,27 +740,23 @@ export class MapManager {
           panel.appendChild(interestBtn);
         }
 
-        // 更新按钮文字
-        interestBtn.textContent = this.favorites.has(p.name)
-          ? '暂时不了'
-          : '我感兴趣';
+        const syncInterestBtn = () => {
+          interestBtn.textContent = this.favorites.has(p.name) ? '暂时不了' : '我感兴趣';
+        };
+        syncInterestBtn();
 
         interestBtn.onclick = () => {
           if (this.favorites.has(p.name)) {
-            // 取消收藏
             this.favorites.delete(p.name);
-            interestBtn.textContent = '我感兴趣';
             this.updateProvinceHighlight(p.name, false);
-            this.updateProvinceLabel(p.name);  
+            this.updateProvinceLabel(p.name);
           } else {
-            // 添加收藏
             this.favorites.add(p.name);
-            interestBtn.textContent = '暂时不了';
             this.updateProvinceHighlight(p.name, true);
-            this.updateProvinceLabel(p.name);  
+            this.updateProvinceLabel(p.name);
           }
+          syncInterestBtn();
         };
-
 
         // “查看详情”按钮逻辑
         const detailBtn = document.getElementById('detail-btn');
@@ -797,6 +790,75 @@ export class MapManager {
       },
       'city-stroke': '#f6efc2',
       'county-stroke': '#f6efc2'
+    });
+  }
+
+  addCapitalLabels() {
+    if (!this.map) return;
+    const layer = new AMap.LabelsLayer({
+      zIndex: 140,
+      collision: true,
+      zooms: [6, 20],
+    });
+    this.map.add(layer);
+    this.capitalLabelLayer = layer;
+
+    const markers = PROVINCE_CAPITALS.map((cap) => new AMap.LabelMarker({
+      position: cap.position,
+      text: {
+        content: cap.name,
+        direction: 'center',
+        offset: [0, -6],
+        style: {
+          fontSize: 11,
+          fontWeight: 600,
+          fillColor: '#5b3d0d',
+          strokeColor: '#fdf1d0',
+          strokeWidth: 2,
+          backgroundColor: 'rgba(255,255,255,0.35)',
+          padding: [1, 4],
+          borderRadius: 3,
+          shadowColor: 'rgba(0,0,0,0.12)',
+          shadowBlur: 2,
+        }
+      }
+    }));
+
+    layer.add(markers);
+
+    const syncVisibility = () => {
+      const zoom = this.map.getZoom();
+      if (zoom >= 6.5) {
+        layer.show();
+      } else {
+        layer.hide();
+      }
+    };
+
+    syncVisibility();
+    this.map.on('zoomend', syncVisibility);
+  }
+
+  applyChinaMask() {
+    AMap.plugin('AMap.DistrictSearch', () => {
+      const search = new AMap.DistrictSearch({
+        level: 'country',
+        extensions: 'all',
+        subdistrict: 0,
+      });
+      search.search('中国', (status, result) => {
+        if (status !== 'complete') return;
+        const boundaries = result.districtList?.[0]?.boundaries;
+        if (!Array.isArray(boundaries) || !boundaries.length) return;
+        this.map.setMask(boundaries);
+        if (!this.outerMaskLayer) {
+          this.outerMaskLayer = new AMap.TileLayer({
+            zIndex: 2,
+            opacity: 1,
+          });
+          this.outerMaskLayer.setMap(this.map);
+        }
+      });
     });
   }
 
@@ -841,7 +903,7 @@ export class MapManager {
       return;
     }
 
-    this.map.setZoomAndCenter(7, center);
+    this.map.setZoomAndCenter(8.5, center);
     this.hoverProvince = province;
     if (this.geoJsonLayer) {
       this.geoJsonLayer.setStyles({
@@ -928,7 +990,7 @@ export class MapManager {
     }
 
     // 地图移动并放大
-    this.map.setZoomAndCenter(7, center);
+    this.map.setZoomAndCenter(8.5, center);
     this.hoverProvince = province;
     if (this.geoJsonLayer) {
       this.geoJsonLayer.setStyles({

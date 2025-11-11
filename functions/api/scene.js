@@ -10,13 +10,12 @@ async function fetchScenes(env, filter = {}) {
     if (filter.sceneId || filter.sceneSlug) {
         const scene = await getSceneByIdentifier(env.china_travel_db, filter);
         if (!scene) throw new HttpError(404, '景点不存在');
-        whereClause = 'WHERE s.id = ?';
-        params.push(scene.id);
+        whereClause = 'WHERE s.slug = ?';
+        params.push(scene.slug);
     }
 
     const query = `
 		SELECT
-			s.id,
 			s.slug,
 			s.name,
 			s.summary,
@@ -29,17 +28,17 @@ async function fetchScenes(env, filter = {}) {
 			COALESCE(v.dislikes, 0) AS dislikes_count
 		FROM scenes s
 		LEFT JOIN (
-			SELECT scene_id, COUNT(*) AS count
+			SELECT scene_slug, COUNT(*) AS count
 			FROM favorites
-			GROUP BY scene_id
-		) AS fav ON fav.scene_id = s.id
+			GROUP BY scene_slug
+		) AS fav ON fav.scene_slug = s.slug
 		LEFT JOIN (
-			SELECT scene_id,
+			SELECT scene_slug,
 				SUM(CASE WHEN vote = 'like' THEN 1 ELSE 0 END) AS likes,
 				SUM(CASE WHEN vote = 'dislike' THEN 1 ELSE 0 END) AS dislikes
 			FROM scene_votes
-			GROUP BY scene_id
-		) AS v ON v.scene_id = s.id
+			GROUP BY scene_slug
+		) AS v ON v.scene_slug = s.slug
 		${whereClause}
 		ORDER BY s.created_at DESC
 	`;
@@ -70,6 +69,7 @@ async function handleVote(request, env, user) {
         sceneSlug: payload.sceneSlug || payload.scene,
     });
     if (!scene) throw new HttpError(404, '景点不存在');
+    const slug = scene.slug;
 
     const vote = payload.vote;
     if (!['like', 'dislike', 'clear'].includes(vote)) {
@@ -78,22 +78,22 @@ async function handleVote(request, env, user) {
 
     if (vote === 'clear') {
         await env.china_travel_db
-            .prepare('DELETE FROM scene_votes WHERE scene_id = ? AND user_id = ?')
-            .bind(scene.id, user.id)
+            .prepare('DELETE FROM scene_votes WHERE scene_slug = ? AND user_id = ?')
+            .bind(slug, user.id)
             .run();
     } else {
         await env.china_travel_db.prepare(`
-			INSERT INTO scene_votes (scene_id, user_id, vote)
+			INSERT INTO scene_votes (scene_slug, user_id, vote)
 			VALUES (?, ?, ?)
-			ON CONFLICT(scene_id, user_id) DO UPDATE SET vote = excluded.vote, updated_at = CURRENT_TIMESTAMP
-		`).bind(scene.id, user.id, vote).run();
+			ON CONFLICT(scene_slug, user_id) DO UPDATE SET vote = excluded.vote, updated_at = CURRENT_TIMESTAMP
+		`).bind(slug, user.id, vote).run();
     }
 
-    const [updated] = await fetchScenes(env, { sceneId: scene.id });
+    const [updated] = await fetchScenes(env, { sceneSlug: slug });
 
     const current = await env.china_travel_db
-        .prepare('SELECT vote FROM scene_votes WHERE scene_id = ? AND user_id = ?')
-        .bind(scene.id, user.id)
+        .prepare('SELECT vote FROM scene_votes WHERE scene_slug = ? AND user_id = ?')
+        .bind(slug, user.id)
         .first();
 
     return jsonResponse({
