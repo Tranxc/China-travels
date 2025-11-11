@@ -1,4 +1,4 @@
-import { copyFileSync, mkdirSync, readdirSync } from 'fs'
+import { copyFileSync, mkdirSync, readdirSync, existsSync } from 'fs'
 import { join, resolve } from 'path'
 import { defineConfig } from 'vite'
 
@@ -22,8 +22,17 @@ function copyComponentsPlugin() {
         }
       }
 
-      copyDir('src/data', 'dist/src/data')
-      copyDir('src/modules', 'dist/src/modules')
+      const manualDirs = [
+        { src: 'src/data', dest: 'dist/src/data' },
+        { src: 'src/modules', dest: 'dist/src/modules' },
+        { src: 'scripts', dest: 'dist/scripts' },
+      ]
+
+      manualDirs.forEach(({ src, dest }) => {
+        if (existsSync(src)) {
+          copyDir(src, dest)
+        }
+      })
 
       // 复制 favicon
       try {

@@ -3,6 +3,7 @@ import {
     createComment,
     deleteComment,
     fetchComments,
+    fetchScene,
     likeComment,
     reportComment,
     unlikeComment,
@@ -18,8 +19,12 @@ import { resolveAssetUrl } from '../config/assets.js';
 
 const DEFAULT_SCENIC_IMAGE = resolveAssetUrl('assets/spots/Beijing_Gugong.avif');
 
-function resolveSceneImages(list) {
-    const resolved = (Array.isArray(list) ? list : [])
+function resolveSceneImages(source) {
+    const list = Array.isArray(source)
+        ? source
+        : (typeof source === 'string' && source.trim() ? [source] : []);
+
+    const resolved = list
         .map((entry) => {
             if (typeof entry !== 'string' || !entry.trim()) return null;
             return resolveAssetUrl(entry);
@@ -32,59 +37,15 @@ function resolveSceneImages(list) {
     return resolved;
 }
 
-const scenicData = {
-    '故宫': {
-        desc: '故宫是明清两代的皇家宫殿，见证了中国数百年的历史变迁。',
-        images: ['assets/spots/Beijing_Gugong.avif'],
-    },
-    '长城': {
-        desc: '长城是中国古代伟大的防御工程，蜿蜒于群山之间，气势磅礴。',
-        images: ['assets/spots/Beijing_Badaling.avif'],
-    },
-    '颐和园': {
-        desc: '颐和园以其精美的园林设计和丰富的历史文化闻名于世。',
-        images: ['assets/spots/Beijing-summer-palace.avif'],
-    },
-    '天津之眼': {
-        desc: '天津之眼是世界上唯一一座建在桥上的摩天轮，俯瞰海河美景。',
-        images: ['assets/spots/Tianjin-the-ferris-wheel.avif'],
-    },
-    '意大利风情区': {
-        desc: '天津意大利风情区融合了欧洲建筑风格，展现独特的历史魅力。',
-        images: ['assets/spots/Tianjin-Italian.avif'],
-    },
-    '避暑山庄': {
-        desc: '避暑山庄是清代皇帝的夏季行宫，以其宏伟的建筑和优美的自然景观著称。',
-        images: ['assets/spots/Hebei-bishushanzhuang.avif'],
-    },
-    '赵州桥': {
-        desc: '赵州桥是世界上现存最古老的敞肩石拱桥，体现了古代中国高超的建筑技艺。',
-        images: ['assets/spots/Hebei-ZhaozhouBridge.avif'],
-    },
-    '外滩': {
-        desc: '外滩坐落于上海黄浦江畔，是最具代表性的城市风景线之一。',
-        images: ['assets/spots/Shanghai-waitan.avif'],
-    },
-    '东方明珠': {
-        desc: '东方明珠塔是上海的标志性建筑，融合了现代科技与传统文化元素。',
-        images: ['assets/spots/Shanghai-dongfangmingzhu.avif'],
-    },
-    '豫园': {
-        desc: '豫园是典型的江南古典园林，以其精致的布局和丰富的文化内涵著称。',
-        images: ['assets/spots/Shanghai-yuyuan.avif'],
-    },
-    '广州塔': {
-        desc: '广州塔，又称“小蛮腰”，是中国最高的电视塔之一。',
-        images: ['assets/spots/Beijing_Gugong.avif'],
-    },
-    默认: {
-        desc: '这是一处美丽的风景，等待你探索更多故事。',
-        images: ['assets/spots/Beijing_Gugong.avif'],
-    },
+const FALLBACK_SCENE = {
+    name: '未知景点',
+    desc: '这是一处美丽的风景，等待你去探索更多故事。',
+    images: ['assets/spots/Beijing_Gugong.avif'],
 };
 
 const state = {
     sceneName: '未知景点',
+    sceneSlug: '未知景点',
     comments: [],
     carousel: {
         images: [],
@@ -101,7 +62,7 @@ async function initPage() {
     setupAuthModalControls();
     initAuthUI();
     cacheElements();
-    setupSceneInfo();
+    await setupSceneInfo();
     setupCarousel();
     setupImageOverlay();
     bindCommentEvents();
@@ -137,21 +98,59 @@ function cacheElements() {
     elements.submitComment = document.getElementById('submit-comment');
 }
 
-function setupSceneInfo() {
+async function setupSceneInfo() {
     const params = new URLSearchParams(window.location.search);
-    const rawName = params.get('spot') || '未知景点';
-    state.sceneName = rawName;
+    const rawSlug = (params.get('spot') || '').trim();
+    const fallbackSlug = rawSlug || '未知景点';
+    state.sceneSlug = fallbackSlug;
 
-    const info = scenicData[rawName] || scenicData.默认;
-    const resolvedImages = resolveSceneImages(info.images);
-    state.carousel.images = resolvedImages.length
-        ? resolvedImages
-        : resolveSceneImages(scenicData.默认.images);
+    try {
+        const scene = await fetchScene({ sceneSlug: fallbackSlug });
+        if (scene) {
+            applyScenePayload(scene, fallbackSlug);
+            return;
+        }
+    } catch (error) {
+        if (!(error instanceof ApiError && error.status === 404)) {
+            handleApiError(error, '景点信息加载失败，请稍后再试', { suppressAlert: true });
+        }
+    }
+
+    applySceneFallback(fallbackSlug);
+}
+
+function applyScenePayload(scene, fallbackSlug) {
+    const displayName = (scene?.name && scene.name.trim()) || fallbackSlug || FALLBACK_SCENE.name;
+    const slug = (scene?.slug || scene?.sceneSlug || fallbackSlug || displayName || '').trim() || displayName;
+    const summary = (scene?.summary && scene.summary.trim()) || FALLBACK_SCENE.desc;
+    const gallerySource = Array.isArray(scene?.images) && scene.images.length
+        ? scene.images
+        : (scene?.cover_url || scene?.coverUrl
+            ? [scene.cover_url || scene.coverUrl]
+            : FALLBACK_SCENE.images);
+
+    const resolvedImages = resolveSceneImages(gallerySource);
+
+    state.sceneName = displayName;
+    state.sceneSlug = slug;
+    state.carousel.images = resolvedImages;
     state.carousel.current = 0;
 
-    if (elements.title) elements.title.textContent = rawName;
-    if (elements.name) elements.name.textContent = rawName;
-    if (elements.desc) elements.desc.textContent = info.desc;
+    if (elements.title) elements.title.textContent = displayName;
+    if (elements.name) elements.name.textContent = displayName;
+    if (elements.desc) elements.desc.textContent = summary;
+}
+
+function applySceneFallback(slug) {
+    const displayName = slug || FALLBACK_SCENE.name;
+    state.sceneName = displayName;
+    state.sceneSlug = slug || displayName;
+    state.carousel.images = resolveSceneImages(FALLBACK_SCENE.images);
+    state.carousel.current = 0;
+
+    if (elements.title) elements.title.textContent = displayName;
+    if (elements.name) elements.name.textContent = displayName;
+    if (elements.desc) elements.desc.textContent = FALLBACK_SCENE.desc;
 }
 
 function setupCarousel() {
@@ -225,7 +224,7 @@ function bindCommentEvents() {
 async function refreshComments() {
     if (!elements.commentList) return;
     try {
-        const comments = await fetchComments({ sceneSlug: state.sceneName });
+        const comments = await fetchComments({ sceneSlug: state.sceneSlug || state.sceneName });
         state.comments = Array.isArray(comments) ? comments : [];
         renderComments();
     } catch (error) {
@@ -294,7 +293,7 @@ async function handleSubmitComment() {
     if (!ensureAuthenticated({ message: '请先登录以发表评论' })) return;
 
     try {
-        await createComment({ sceneSlug: state.sceneName }, content);
+        await createComment({ sceneSlug: state.sceneSlug || state.sceneName }, content);
         elements.commentInput.value = '';
         await refreshComments();
         showToast('评论已发布', { type: 'success' });
@@ -381,7 +380,7 @@ async function submitReply(commentId) {
     if (!ensureAuthenticated({ message: '请先登录以回复评论' })) return;
 
     try {
-        await createComment({ sceneSlug: state.sceneName }, content, commentId);
+        await createComment({ sceneSlug: state.sceneSlug || state.sceneName }, content, commentId);
         textarea.value = '';
         box.classList.add('hidden');
         await refreshComments();
