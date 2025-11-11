@@ -1,187 +1,9 @@
 import { addFavorite, ApiError, fetchFavorites, fetchScene, removeFavorite, submitSceneVote } from './api.js';
 import { clearAuthSession, ensureAuthenticated, getAuthToken, showToast } from './auth.js';
 import { resolveAssetUrl } from '../config/assets.js';
-
-const PROVINCE_METADATA = [
-  {
-    name: '北京市',
-    center: [116.4, 39.9],
-    labelCenter: [116.4, 40.2],
-    searchKeys: ['北京', '京', '故宫', '长城', '颐和园', '天坛'],
-  },
-  {
-    name: '天津市',
-    center: [117.2, 39.12],
-    labelCenter: [117.3, 38.9],
-    searchKeys: ['天津', '津', '古文化街', '意式风情区', '海河'],
-  },
-  {
-    name: '河北省',
-    center: [114.48, 38.03],
-    labelCenter: [114.5, 38.5],
-    searchKeys: ['河北', '冀', '避暑山庄', '山海关', '赵州桥'],
-  },
-  {
-    name: '山西省',
-    center: [112.55, 37.87],
-    labelCenter: [112.5, 37.9],
-    searchKeys: ['山西', '晋', '平遥古城', '云冈石窟', '悬空寺'],
-  },
-  {
-    name: '内蒙古自治区',
-    center: [111.3, 42.0],
-    searchKeys: ['内蒙古', '蒙', '呼伦贝尔', '额济纳', '成吉思汗陵'],
-  },
-  {
-    name: '辽宁省',
-    center: [123.3, 41.5],
-    searchKeys: ['辽宁', '辽', '沈阳故宫', '大连星海广场', '本溪水洞'],
-  },
-  {
-    name: '吉林省',
-    center: [125.0, 43.6],
-    searchKeys: ['吉林', '吉', '长白山', '雾凇岛', '净月潭'],
-  },
-  {
-    name: '黑龙江省',
-    center: [127.0, 46.0],
-    searchKeys: ['黑龙江', '黑', '哈尔滨冰雪大世界', '雪乡', '五大连池'],
-  },
-  {
-    name: '上海市',
-    center: [121.47, 31.23],
-    labelCenter: [121.6, 31.3],
-    searchKeys: ['上海', '沪', '外滩', '东方明珠', '豫园', '迪士尼'],
-  },
-  {
-    name: '江苏省',
-    center: [118.7, 32.3],
-    searchKeys: ['江苏', '苏', '苏州园林', '拙政园', '夫子庙', '中山陵'],
-  },
-  {
-    name: '浙江省',
-    center: [120.4, 29.8],
-    searchKeys: ['浙江', '浙', '西湖', '乌镇', '普陀山', '千岛湖'],
-  },
-  {
-    name: '安徽省',
-    center: [117.0, 31.6],
-    searchKeys: ['安徽', '皖', '黄山', '宏村', '九华山'],
-  },
-  {
-    name: '福建省',
-    center: [118.9, 26.4],
-    searchKeys: ['福建', '闽', '鼓浪屿', '武夷山', '土楼'],
-  },
-  {
-    name: '江西省',
-    center: [115.9, 28.9],
-    searchKeys: ['江西', '赣', '庐山', '景德镇', '婺源'],
-  },
-  {
-    name: '山东省',
-    center: [118.5, 36.7],
-    searchKeys: ['山东', '鲁', '泰山', '曲阜', '崂山'],
-  },
-  {
-    name: '河南省',
-    center: [113.5, 34.9],
-    searchKeys: ['河南', '豫', '少林寺', '龙门石窟', '云台山'],
-  },
-  {
-    name: '湖北省',
-    center: [112.5, 30.8],
-    searchKeys: ['湖北', '鄂', '黄鹤楼', '三峡大坝', '神农架'],
-  },
-  {
-    name: '湖南省',
-    center: [112.7, 28.3],
-    searchKeys: ['湖南', '湘', '张家界', '岳阳楼', '凤凰古城'],
-  },
-  {
-    name: '广东省',
-    center: [113.27, 23.13],
-    labelCenter: [113.2, 23.9],
-    searchKeys: ['广东', '粤', '广州塔', '丹霞山', '白云山'],
-  },
-  {
-    name: '广西壮族自治区',
-    center: [108.3, 23.4],
-    searchKeys: ['广西', '桂', '桂林山水', '阳朔西街', '德天瀑布'],
-  },
-  {
-    name: '海南省',
-    center: [110.2, 19.8],
-    searchKeys: ['海南', '琼', '亚龙湾', '蜈支洲岛'],
-  },
-  {
-    name: '重庆市',
-    center: [106.55, 29.56],
-    labelCenter: [106.4, 29.7],
-    searchKeys: ['重庆', '渝', '洪崖洞', '磁器口', '长江索道'],
-  },
-  {
-    name: '四川省',
-    center: [104.07, 30.67],
-    labelCenter: [103.8, 30.6],
-    searchKeys: ['四川', '蜀', '宽窄巷子', '九寨沟', '峨眉山', '都江堰'],
-  },
-  {
-    name: '贵州省',
-    center: [106.6, 26.7],
-    searchKeys: ['贵州', '黔', '黄果树瀑布', '西江千户苗寨', '梵净山'],
-  },
-  {
-    name: '云南省',
-    center: [101.5, 25.3],
-    searchKeys: ['云南', '滇', '丽江古城', '洱海', '玉龙雪山', '西双版纳'],
-  },
-  {
-    name: '西藏自治区',
-    center: [91.0, 30.3],
-    searchKeys: ['西藏', '藏', '布达拉宫', '纳木错', '珠峰大本营'],
-  },
-  {
-    name: '陕西省',
-    center: [108.7, 34.0],
-    searchKeys: ['陕西', '陕', '兵马俑', '华清池', '大雁塔', '华山'],
-  },
-  {
-    name: '甘肃省',
-    center: [103.2, 36.1],
-    searchKeys: ['甘肃', '甘', '敦煌', '莫高窟', '嘉峪关', '张掖丹霞'],
-  },
-  {
-    name: '青海省',
-    center: [97.0, 36.2],
-    searchKeys: ['青海', '青', '青海湖', '茶卡盐湖', '塔尔寺'],
-  },
-  {
-    name: '宁夏回族自治区',
-    center: [106.3, 38.6],
-    searchKeys: ['宁夏', '宁', '沙坡头', '沙湖', '镇北堡'],
-  },
-  {
-    name: '新疆维吾尔自治区',
-    center: [87.4, 43.9],
-    searchKeys: ['新疆', '新', '喀纳斯', '天山天池', '赛里木湖', '火焰山'],
-  },
-  {
-    name: '台湾省',
-    center: [121.2, 24.1],
-    searchKeys: ['台湾', '台', '日月潭', '阿里山', '垦丁'],
-  },
-  {
-    name: '香港特别行政区',
-    center: [114.15, 22.4],
-    searchKeys: ['香港', '港', '维多利亚港', '太平山顶', '迪士尼'],
-  },
-  {
-    name: '澳门特别行政区',
-    center: [113.55, 22.2],
-    searchKeys: ['澳门', '澳', '大三巴牌坊', '官也街', '新葡京'],
-  },
-];
+import { PROVINCE_METADATA } from '../data/provinces.js';
+import { PROVINCE_TAGLINES, DEFAULT_PROVINCE_TAGLINE } from '../data/province-taglines.js';
+import { SCENES as STATIC_SCENES } from '../../scripts/scenes-data.js';
 
 const PROVINCE_CENTERS = {};
 const PROVINCE_KEYWORD_MAP = {};
@@ -199,6 +21,37 @@ PROVINCE_METADATA.forEach((province) => {
 
 const ALL_SEARCH_KEYWORDS = Object.keys(PROVINCE_KEYWORD_MAP);
 
+const STATIC_SCENE_LIST = Array.isArray(STATIC_SCENES) ? STATIC_SCENES : [];
+const STATIC_SCENES_BY_PROVINCE = new Map();
+const STATIC_SCENE_LOOKUP = new Map();
+const STATIC_SCENE_KEYWORDS = {};
+
+STATIC_SCENE_LIST.forEach((scene) => {
+  if (!scene) return;
+  const slug = String(scene.slug || scene.sceneSlug || scene.name || '').trim();
+  const name = String(scene.name || slug || '').trim() || '未知景点';
+  const province = String(scene.province || '').trim() || '未分类';
+  const coverPath = scene.cover_url || scene.coverUrl || '';
+  const entry = {
+    ...scene,
+    name,
+    slug: slug || name,
+    province,
+    img: coverPath ? resolveAssetUrl(coverPath) : DEFAULT_SCENE_IMAGE,
+  };
+
+  if (!STATIC_SCENES_BY_PROVINCE.has(province)) {
+    STATIC_SCENES_BY_PROVINCE.set(province, []);
+  }
+  STATIC_SCENES_BY_PROVINCE.get(province).push(entry);
+
+  if (entry.slug) STATIC_SCENE_LOOKUP.set(entry.slug, entry);
+  if (entry.name) STATIC_SCENE_LOOKUP.set(entry.name, entry);
+
+  if (entry.name) STATIC_SCENE_KEYWORDS[entry.name] = province;
+  if (entry.slug) STATIC_SCENE_KEYWORDS[entry.slug] = province;
+});
+
 export class MapManager {
   constructor() {
     this.map = null;
@@ -213,6 +66,9 @@ export class MapManager {
     this._onSmartSearchEvent = this.onSmartSearchEvent.bind(this);
     this.favoriteSpots = new Map();
     this._favoritesLoaded = false;
+    this.scenesByProvince = new Map(STATIC_SCENES_BY_PROVINCE);
+    this.sceneLookup = new Map(STATIC_SCENE_LOOKUP);
+    this.extendSceneKeywords(STATIC_SCENE_KEYWORDS);
   }
 
   /** 初始化地图 */
@@ -230,15 +86,14 @@ export class MapManager {
       limitBounds: new AMap.Bounds([73.5, 1.0], [135.0, 53.6]),
       zooms: [4, 6]
     });
-    // ✅✅✅ 在这里插入 👇
-    // === 添加一个底层黄系世界地图 ===
+
     const baseLayer = new AMap.TileLayer({
       zIndex: 1,
       opacity: 1,
     });
     this.map.setLayers([baseLayer]);
 
-    // 加一层半透明淡黄色蒙版，让非中国部分也暖色调
+    // 一层半透明淡黄色蒙版
     const maskDiv = document.createElement('div');
     maskDiv.style.cssText = `
     position: absolute;
@@ -249,18 +104,16 @@ export class MapManager {
     z-index: 5;
   `;
     this.map.getContainer().appendChild(maskDiv);
-    // ✅✅✅ 到这里为止
 
     this.bindDetailPanelEvents();
     this.bindInfoPanelEvents();
     this.loadPlugins();
     this.bindToolbarEvents();
-    this.loadChinaProvinces(); // 加载全国省界
+    this.loadChinaProvinces(); 
 
     await this.syncFavorites();
   }
 
-  /** 等待 AMap SDK 加载完毕 */
   waitForAMap() {
     return new Promise(resolve => {
       const check = () => window.AMap ? resolve() : setTimeout(check, 100);
@@ -268,15 +121,35 @@ export class MapManager {
     });
   }
 
-  /** 加载基础插件 */
   loadPlugins() {
     AMap.plugin(['AMap.ToolBar', 'AMap.Scale', 'AMap.ControlBar'], () => {
       this.map.addControl(new AMap.ToolBar());
-
-      // 其他控件保持不变（比例尺默认左下、指南针默认左上）
       this.map.addControl(new AMap.Scale());
       this.map.addControl(new AMap.ControlBar());
     });
+  }
+
+  extendSceneKeywords(keywordMap = {}) {
+    const entries = Object.entries(keywordMap || {});
+    if (!entries.length) return;
+    entries.forEach(([keyword, province]) => {
+      if (!keyword) return;
+      this.spotToProvince[keyword] = province;
+    });
+    this.allSearchKeys = Array.from(new Set([...this.allSearchKeys, ...entries.map(([keyword]) => keyword)]));
+  }
+
+  getScenesForProvince(name) {
+    if (!name) return [];
+    if (this.scenesByProvince && this.scenesByProvince.has(name)) {
+      return this.scenesByProvince.get(name);
+    }
+    return STATIC_SCENES_BY_PROVINCE.get(name) || [];
+  }
+
+  getProvinceTagline(name) {
+    if (!name) return DEFAULT_PROVINCE_TAGLINE;
+    return PROVINCE_TAGLINES[name] || `${name} ${DEFAULT_PROVINCE_TAGLINE}`;
   }
 
   /** 统一处理搜索事件的监听器 */
@@ -286,7 +159,6 @@ export class MapManager {
       showToast('请输入景点或省份名称', { type: 'warning' });
       return;
     }
-    // ✅ 调用你已有的智能搜索逻辑
     this.handleSmartSearch(kw);
   }
 
@@ -297,13 +169,11 @@ export class MapManager {
     const searchBtn = document.getElementById('search-btn');
     const searchInput = document.getElementById('search-input');
 
-    // ✅ 只注册一次全局事件监听器
     if (!this._smartSearchListenerAdded) {
       window.addEventListener('poemmap:search', this._onSmartSearchEvent);
       this._smartSearchListenerAdded = true;
     }
 
-    // ✅ 统一派发自定义事件（按钮点击）
     searchBtn.addEventListener('click', () => {
       const keyword = searchInput.value.trim();
       window.dispatchEvent(new CustomEvent('poemmap:search', {
@@ -311,7 +181,6 @@ export class MapManager {
       }));
     });
 
-    // ✅ 统一派发自定义事件（Enter）
     searchInput.addEventListener('keydown', (e) => {
       if (e.key === 'Enter') {
         e.preventDefault();
@@ -322,12 +191,10 @@ export class MapManager {
       }
     });
 
-    // ===== 自动补全建议（保留你原有代码，但改为派发事件） =====
     const suggestBox = document.createElement('ul');
     suggestBox.id = 'suggest-list';
     suggestBox.className = 'suggest-list hidden';
     searchInput.parentElement.appendChild(suggestBox);
-    // === 搜索帮助弹窗逻辑 ===
     const helpBtn = document.getElementById('help-btn');
     const helpModal = document.getElementById('help-modal');
     const closeHelpBtn = document.getElementById('close-help-btn');
@@ -341,19 +208,16 @@ export class MapManager {
         helpModal.classList.add('hidden');
       });
 
-      // 点击遮罩层空白处关闭
       helpModal.addEventListener('click', (e) => {
         if (e.target === helpModal) helpModal.classList.add('hidden');
       });
     }
 
-    // 输入时刷新建议
     searchInput.addEventListener('input', (e) => {
       const value = e.target.value.trim();
       this.showSuggestions(value, suggestBox);
     });
 
-    // 点击建议 -> 统一派发自定义事件
     suggestBox.addEventListener('click', (ev) => {
       const li = ev.target.closest('li');
       if (!li) return;
@@ -371,7 +235,6 @@ export class MapManager {
     const closeFavoritesBtn = document.getElementById('close-favorites-btn');
 
     if (favoritesBtn && favoritesModal && favoritesList && closeFavoritesBtn) {
-      // ✅ 点击按钮才打开弹窗
       favoritesBtn.addEventListener('click', async () => {
         if (!ensureAuthenticated({ message: '请先登录以查看收藏列表' })) return;
         await this.syncFavorites();
@@ -383,12 +246,10 @@ export class MapManager {
         favoritesModal.classList.remove('hidden');
       });
 
-      // ✅ 点击关闭按钮隐藏弹窗
       closeFavoritesBtn.addEventListener('click', () => {
         favoritesModal.classList.add('hidden');
       });
 
-      // ✅ 点击收藏项自动跳转到对应省份
       favoritesList.addEventListener('click', (e) => {
         const li = e.target.closest('.fav-item');
         if (!li) return;
@@ -402,10 +263,7 @@ export class MapManager {
         favoritesModal.classList.add('hidden');
       });
     }
-
-
   }
-
 
   /** 图层切换（卫星/普通） */
   toggleLayer() {
@@ -418,7 +276,7 @@ export class MapManager {
 
 
 
-  /** 加载全国行政区图层并实现 hover 效果 */
+  /** 加载全国行政区图层 */
   loadChinaProvinces() {
     AMap.plugin('AMap.DistrictLayer', () => {
       // 创建全国行政区层
@@ -427,11 +285,11 @@ export class MapManager {
         SOC: 'CHN',
         depth: 1,
         styles: {
-          fill: () => '#f8e8a6', // ✅ 柔和淡黄色填充
+          fill: () => '#f8e8a6',
           'province-stroke': (props) => {
-            if (this.favorites.has(props.NAME_CHN)) return '#d77f1f'; // 收藏省橙红描边
-            if (this.hoverProvince === props.NAME_CHN) return '#c59b34 '; // 悬停淡紫
-            return '#bcae6e'; // 默认边界淡棕
+            if (this.favorites.has(props.NAME_CHN)) return '#d77f1f';
+            if (this.hoverProvince === props.NAME_CHN) return '#c59b34 '; 
+            return '#bcae6e'; 
           },
           'city-stroke': '#f6efc2',
           'county-stroke': '#f6efc2'
@@ -448,7 +306,6 @@ export class MapManager {
         if (!feature || !feature.length) {
           if (this.hoverProvince) {
             this.hoverProvince = null;
-            // 修正：直接调用 setStyles 并传入当前样式对象
             layer.setStyles({
               fill: () => '#f8e8a6',
               'province-stroke': (props) => {
@@ -495,9 +352,6 @@ export class MapManager {
       });
     });
 
-    // 添加示例标记点
-    // this.addSampleMarkers();
-
     // 绑定地图双击放大事件
     this.map.on('dblclick', (e) => {
       const zoom = this.map.getZoom();
@@ -506,40 +360,7 @@ export class MapManager {
     this.addProvinceLabels();
   }
 
-  /** 添加示例标记点 */
-  addSampleMarkers() {
-    // 模拟从数据库读取的数据
-    const sampleData = [
-      { name: '北京市', position: [116.4074, 39.9042], info: '中国的首都，政治与文化中心。' },
-      { name: '天津市', position: [117.2000, 39.1333], info: '重要的港口城市，历史悠久。' },
-      { name: '上海市', position: [121.4737, 31.2304], info: '中国的经济与金融中心。' },
-      { name: '河北省', position: [114.5025, 38.0455], info: '环绕北京与天津，历史文化丰富。' }
-    ];
 
-    this.markers = sampleData.map(item => {
-      const marker = new AMap.Marker({
-        position: item.position,
-        title: item.name,
-        map: this.map
-      });
-
-      // 单击显示信息窗口
-      marker.on('click', () => {
-        const panel = document.getElementById('marker-info-panel');
-        document.getElementById('info-title').textContent = item.name;
-        document.getElementById('info-desc').textContent = item.info;
-
-        const detailBtn = document.getElementById('detail-btn');
-        detailBtn.onclick = () => this.showDetailPanel(item);
-
-        panel.classList.remove('hidden');
-        panel.classList.add('show');
-      });
-
-
-      return marker;
-    });
-  }
   /** 绑定信息窗关闭按钮事件 */
   bindInfoPanelEvents() {
     const panel = document.getElementById('marker-info-panel');
@@ -556,36 +377,12 @@ export class MapManager {
     const panel = document.getElementById('detail-panel');
     document.getElementById('detail-title').textContent = item.name;
 
-    const cityDetails = {
-      '北京市': '北京是中华人民共和国的首都，政治文化中心，拥有长城、故宫等历史遗迹。',
-      '天津市': '天津是中国北方重要的港口城市，以其独特的欧陆建筑风格闻名。',
-      '上海市': '上海是中国经济中心，以金融、航运和现代化城市景观著称。',
-      '河北省': '河北省环绕北京与天津，拥有避暑山庄、赵州桥等世界文化遗产。',
-    };
-
-    // 模拟每个省市的景点
-    const scenicSpots = {
-      '河北省': [
-        { name: '避暑山庄', img: resolveAssetUrl('assets/spots/Hebei-bishushanzhuang.avif') },
-        { name: '赵州桥', img: resolveAssetUrl('assets/spots/Hebei-ZhaozhouBridge.avif') }
-      ],
-      '天津市': [
-        { name: '意大利风情区', img: resolveAssetUrl('assets/spots/Tianjin-Italian.avif') },
-        { name: '天津之眼', img: resolveAssetUrl('assets/spots/Tianjin-the-ferris-wheel.avif') }
-      ],
-      '北京市': [
-        { name: '故宫', img: resolveAssetUrl('assets/spots/Beijing_Gugong.avif') },
-        { name: '长城', img: resolveAssetUrl('assets/spots/Beijing_Badaling.avif') },
-        { name: '颐和园', img: resolveAssetUrl('assets/spots/Beijing-summer-palace.avif') }
-      ],
-      '上海市': [
-        { name: '外滩', img: resolveAssetUrl('assets/spots/Shanghai-waitan.avif') },
-        { name: '东方明珠', img: resolveAssetUrl('assets/spots/Shanghai-dongfangmingzhu.avif') },
-        { name: '豫园', img: resolveAssetUrl('assets/spots/Shanghai-yuyuan.avif') }
-      ],
-    };
-
-    const spots = scenicSpots[item.name] || [];
+    const provinceScenes = this.getScenesForProvince(item.name);
+    const spots = provinceScenes.map((scene) => ({
+      name: scene?.name || scene?.slug || item.name,
+      slug: scene?.slug || scene?.name,
+      img: scene?.img || resolveAssetUrl(scene?.cover_url || scene?.coverUrl || ''),
+    }));
     const track = document.getElementById('carousel-track');
     const caption = document.getElementById('carousel-caption');
 
@@ -597,7 +394,7 @@ export class MapManager {
 
     // 填充图片项
     track.innerHTML = spots.map(s => `
-  <div class="carousel-item" data-name="${s.name}">
+  <div class="carousel-item" data-name="${s.name}" data-slug="${s.slug || ''}">
     <img src="${s.img}" alt="${s.name}">
   </div>
 `).join('');
@@ -623,13 +420,12 @@ export class MapManager {
       currentIndex = (currentIndex + 1) % spots.length;
       updateCarousel();
     };
-    // ✅ 自动播放轮播
+
     let autoPlayInterval = setInterval(() => {
       currentIndex = (currentIndex + 1) % spots.length;
       updateCarousel();
     }, 4000); // 每 4 秒自动切换
 
-    // 当用户点击左右箭头时，重置自动播放计时（防止太快跳两次）
     [prevBtn, nextBtn].forEach(btn => {
       btn.addEventListener('click', () => {
         clearInterval(autoPlayInterval);
@@ -651,39 +447,45 @@ export class MapManager {
       };
     }
 
-    // ===== 收藏按钮（跟随当前景点）=====
+    // ===== 收藏按钮 =====
     const favBtn = document.getElementById('favorite-spot-btn');
 
     // 用于根据 currentIndex 同步按钮文案
     const syncFavBtn = () => {
-      const spotName = spots[currentIndex]?.name;    // 当前轮播图对应景点名
-      if (!spotName) {
+      if (!favBtn) return;
+      const currentSpot = spots[currentIndex];
+      const identifier = currentSpot?.slug || currentSpot?.name;
+      if (!identifier) {
         favBtn.style.display = 'none';
         return;
       }
       favBtn.style.display = 'inline-block';
-      const isFav = this.favoriteSpots.has(spotName);
+      const isFav = this.favoriteSpots.has(identifier);
       favBtn.textContent = isFav ? '取消收藏' : '收藏景点';
       favBtn.dataset.favorite = isFav ? 'true' : 'false';
     };
 
     // 点击切换收藏状态
-    favBtn.onclick = async () => {
-      const spotName = spots[currentIndex]?.name;
-      if (!spotName) return;
-      if (!ensureAuthenticated({ message: '请先登录以收藏景点' })) return;
-      const wasFavorite = this.favoriteSpots.has(spotName);
-      try {
-        const nowFavorite = await this.toggleFavoriteSpot(spotName);
-        favBtn.textContent = nowFavorite ? '取消收藏' : '收藏景点';
-        showToast(nowFavorite ? `已收藏「${spotName}」` : `已取消收藏「${spotName}」`, {
-          type: nowFavorite ? 'success' : 'info'
-        });
-      } catch (error) {
-        this.handleRequestError(error, wasFavorite ? '取消收藏失败，请稍后重试' : '收藏失败，请稍后重试');
-      }
-      syncFavBtn();
-    };
+    if (favBtn) {
+      favBtn.onclick = async () => {
+        const currentSpot = spots[currentIndex];
+        const identifier = currentSpot?.slug || currentSpot?.name;
+        const label = currentSpot?.name || identifier;
+        if (!identifier) return;
+        if (!ensureAuthenticated({ message: '请先登录以收藏景点' })) return;
+        const wasFavorite = this.favoriteSpots.has(identifier);
+        try {
+          const nowFavorite = await this.toggleFavoriteSpot(identifier);
+          favBtn.textContent = nowFavorite ? '取消收藏' : '收藏景点';
+          showToast(nowFavorite ? `已收藏「${label}」` : `已取消收藏「${label}」`, {
+            type: nowFavorite ? 'success' : 'info'
+          });
+        } catch (error) {
+          this.handleRequestError(error, wasFavorite ? '取消收藏失败，请稍后重试' : '收藏失败，请稍后重试');
+        }
+        syncFavBtn();
+      };
+    }
 
     // 初始化 & 每次切换都刷新收藏文案
     syncFavBtn();
@@ -709,14 +511,16 @@ export class MapManager {
       newDislikeBtn.classList.toggle('active', state.vote === 'dislike');
     };
 
-    const bindVoteButtons = async (spotName) => {
-      if (!spotName) return;
+    const bindVoteButtons = async (spot) => {
+      const identifier = spot?.slug || spot?.name;
+      const label = spot?.name || identifier;
+      if (!identifier) return;
 
-      let data = this.votes.get(spotName);
+      let data = this.votes.get(identifier);
 
       if (!data || !data.synced) {
         try {
-          const scene = await fetchScene(this.getSceneIdentifier(spotName));
+          const scene = await fetchScene(this.getSceneIdentifier(identifier));
           if (scene) {
             data = {
               vote: data?.vote ?? null,
@@ -733,7 +537,7 @@ export class MapManager {
           data = { vote: null, likes: 0, dislikes: 0, synced: false };
         }
 
-        this.votes.set(spotName, data);
+        this.votes.set(identifier, data);
       }
 
       updateVoteUI(data);
@@ -743,7 +547,7 @@ export class MapManager {
 
         const previousVote = data.vote;
         try {
-          const payload = await submitSceneVote(this.getSceneIdentifier(spotName), action);
+          const payload = await submitSceneVote(this.getSceneIdentifier(identifier), action);
           const scene = payload?.scene;
           const currentVote = payload?.currentVote || null;
           data = {
@@ -752,20 +556,20 @@ export class MapManager {
             dislikes: scene?.dislikes_count ?? data.dislikes,
             synced: true,
           };
-          this.votes.set(spotName, data);
+          this.votes.set(identifier, data);
           updateVoteUI(data);
 
           if (previousVote !== currentVote) {
             let toastMessage = '';
             let toastType = 'success';
             if (currentVote === 'like') {
-              toastMessage = `已为「${spotName}」点了赞`;
+              toastMessage = `已为「${label}」点了赞`;
               toastType = 'success';
             } else if (currentVote === 'dislike') {
-              toastMessage = `已为「${spotName}」点了不喜欢`;
+              toastMessage = `已为「${label}」点了不喜欢`;
               toastType = 'warning';
             } else {
-              toastMessage = `已撤销对「${spotName}」的评价`;
+              toastMessage = `已撤销对「${label}」的评价`;
               toastType = 'info';
             }
             showToast(toastMessage, { type: toastType });
@@ -788,26 +592,24 @@ export class MapManager {
       };
 
       newLikeBtn.onclick = async () => {
-        const current = this.votes.get(spotName) || data;
+        const current = this.votes.get(identifier) || data;
         const action = current.vote === 'like' ? 'clear' : 'like';
         await sendVote(action);
       };
 
       newDislikeBtn.onclick = async () => {
-        const current = this.votes.get(spotName) || data;
+        const current = this.votes.get(identifier) || data;
         const action = current.vote === 'dislike' ? 'clear' : 'dislike';
         await sendVote(action);
       };
     };
 
-    // ✅ 初始化绑定当前景点
-    let currentSpot = spots[currentIndex]?.name || item.name;
+    let currentSpot = spots[currentIndex] || { name: item.name };
     await bindVoteButtons(currentSpot);
 
-    // ✅ 每次切换轮播重新绑定
     [prevBtn, nextBtn].forEach(btn => {
       btn.addEventListener('click', () => {
-        currentSpot = spots[currentIndex]?.name || item.name;
+        currentSpot = spots[currentIndex] || { name: item.name };
         bindVoteButtons(currentSpot);
       });
     });
@@ -816,8 +618,10 @@ export class MapManager {
     // 点击图片跳转到景点详情页
     track.querySelectorAll('.carousel-item').forEach((el, i) => {
       el.onclick = () => {
-        const spotName = spots[i].name;
-        window.location.href = `../../pages/scenic.html?spot=${encodeURIComponent(spotName)}`;
+        const spot = spots[i];
+        const identifier = spot?.slug || spot?.name;
+        if (!identifier) return;
+        window.location.href = `../../pages/scenic.html?spot=${encodeURIComponent(identifier)}`;
       };
     });
 
@@ -848,7 +652,7 @@ export class MapManager {
       };
     }
   }
-  /** 在按钮附近显示 +1 / -1 浮动动画 */
+
   showFloatingFeedback(element, text, color = '#c59b34 ') {
     const span = document.createElement('span');
     span.className = 'floating-feedback';
@@ -860,11 +664,8 @@ export class MapManager {
     setTimeout(() => span.remove(), 800);
   }
 
-  /** 美观的省份文字标签图层（带缩放控制与防重叠） */
   addProvinceLabels() {
     const provinces = PROVINCE_LABEL_DATA;
-
-    // ✅ 创建文字标注图层，控制显示范围
     const labelLayer = new AMap.LabelsLayer({
       zIndex: 120,
       collision: true,
@@ -893,15 +694,13 @@ export class MapManager {
         }
       });
 
-
-      // 悬停变色（新版 API 用 setText）
       labelMarker.on('mouseover', () => {
         const text = labelMarker.getText();
         labelMarker.setText({
-          content: text.content, // 保持原文字
+          content: text.content, 
           style: {
             ...text.style,
-            fillColor: '#9b6bff',     // ✅ 悬停时紫色
+            fillColor: '#9b6bff',     
             backgroundColor: 'rgba(255,255,255,0.9)',
             fontWeight: 700,
             strokeColor: '#fff5c0',
@@ -916,7 +715,7 @@ export class MapManager {
           content: text.content,
           style: {
             ...text.style,
-            fillColor: '#2c2c2c',      // ✅ 恢复原深灰
+            fillColor: '#2c2c2c',     
             backgroundColor: 'rgba(255,255,255,0.75)',
             fontWeight: 600,
             strokeColor: '#fff',
@@ -926,31 +725,18 @@ export class MapManager {
       });
 
       labelMarker.on('click', () => {
-         const cityDetails = {
-           '北京市': '北京是中华人民共和国的首都，政治文化中心，拥有长城、故宫等历史遗迹。',
-           '天津市': '天津是中国北方重要的港口城市，以其独特的欧陆建筑风格闻名。',
-           '上海市': '上海是中国经济中心，以金融、航运和现代化城市景观著称。',
-           '广州市': '广州是南中国重要的港口与商贸城市，岭南文化发源地。',
-           '成都市': '成都以美食、休闲与历史文化闻名，被称为“天府之国”。',
-           '河北省': '河北省环绕北京与天津，拥有避暑山庄、赵州桥等世界文化遗产。',
-           '广东省': '中国改革开放前沿地区，以经济活力和岭南文化著称。',
-           '四川省': '“天府之国”，自然与人文资源丰富，都江堰与宽窄巷子闻名中外。'
-        };
         const item = {
           name: p.name,
           position: p.center,
-          info: cityDetails[p.name] ||`${p.name} 是中国的重要省级行政区，拥有丰富的自然与人文景观。`
+          info: this.getProvinceTagline(p.name)
         };
 
-        // 打开右侧信息窗
         const panel = document.getElementById('marker-info-panel');
         document.getElementById('info-title').textContent = item.name;
         document.getElementById('info-desc').textContent = item.info;
 
-        // === 新增：感兴趣按钮逻辑 ===
         let interestBtn = document.getElementById('interest-btn');
         if (!interestBtn) {
-          // 如果第一次创建，添加按钮
           interestBtn = document.createElement('button');
           interestBtn.id = 'interest-btn';
           interestBtn.className = 'interest-btn';
@@ -968,13 +754,13 @@ export class MapManager {
             this.favorites.delete(p.name);
             interestBtn.textContent = '我感兴趣';
             this.updateProvinceHighlight(p.name, false);
-            this.updateProvinceLabel(p.name);  // ✅ 刷新星标
+            this.updateProvinceLabel(p.name);  
           } else {
             // 添加收藏
             this.favorites.add(p.name);
             interestBtn.textContent = '暂时不了';
             this.updateProvinceHighlight(p.name, true);
-            this.updateProvinceLabel(p.name);  // ✅ 刷新星标
+            this.updateProvinceLabel(p.name);  
           }
         };
 
@@ -996,22 +782,17 @@ export class MapManager {
 
   updateProvinceHighlight(provinceName, highlight) {
     if (!this.geoJsonLayer) return;
-
     const layer = this.geoJsonLayer;
 
-    // 重新设置样式：根据收藏集合和 hover 状态实时计算颜色
     layer.setStyles({
-      fill: () => '#f8e8a6', // 默认填充色
+      fill: () => '#f8e8a6', 
       'province-stroke': (props) => {
-        // 只有收藏的省份才标记橙色
         if (this.favorites.has(props.NAME_CHN)) {
-          return '#ff9b00'; // 收藏省份高亮色
+          return '#ff9b00';
         }
-        // 鼠标悬停时紫色
         if (this.hoverProvince === props.NAME_CHN) {
           return '#c59b34 ';
         }
-        // 默认颜色
         return '#999';
       },
       'city-stroke': '#f6efc2',
@@ -1027,7 +808,6 @@ export class MapManager {
     this.provinceLabelLayer.getAllOverlays().forEach(marker => {
       const txt = marker.getText();
       if (txt && txt.content.includes(name)) {
-        // 如果是收藏，显示星标
         marker.setText({
           content: `${this.favorites.has(name) ? "⭐ " : ""}${name}`,
         });
@@ -1055,14 +835,12 @@ export class MapManager {
       return;
     }
 
-    // ✅ 获取该省份的中心坐标
     const center = this.provinceCenters?.[province];
     if (!center) {
       showToast(`暂未定义 ${province} 的中心坐标`, { type: 'warning' });
       return;
     }
 
-    // ✅ 地图平滑移动并放大
     this.map.setZoomAndCenter(7, center);
     this.hoverProvince = province;
     if (this.geoJsonLayer) {
@@ -1078,10 +856,9 @@ export class MapManager {
       });
     }
 
-    // ✅ 打开右侧信息窗
     const panel = document.getElementById('marker-info-panel');
     document.getElementById('info-title').textContent = province;
-    document.getElementById('info-desc').textContent = `${province} 是中国的重要省份，拥有丰富的自然与人文景观。`;
+    document.getElementById('info-desc').textContent = this.getProvinceTagline(province);
 
     const detailBtn = document.getElementById('detail-btn');
     detailBtn.onclick = () => this.showDetailPanel({ name: province, position: center });
@@ -1169,7 +946,7 @@ export class MapManager {
     // 打开右侧信息面板
     const panel = document.getElementById('marker-info-panel');
     document.getElementById('info-title').textContent = province;
-    document.getElementById('info-desc').textContent = `${province} 是中国的重要省份，拥有丰富的自然与人文景观。`;
+    document.getElementById('info-desc').textContent = this.getProvinceTagline(province);
 
     const detailBtn = document.getElementById('detail-btn');
     detailBtn.onclick = () => this.showDetailPanel({ name: province, position: center });
@@ -1191,10 +968,9 @@ export class MapManager {
       const favorites = await fetchFavorites();
       this.favoriteSpots.clear();
       favorites.forEach(item => {
-        const key = item?.name || item?.slug || item?.sceneSlug;
-        if (key) {
-          this.favoriteSpots.set(key, item);
-        }
+        const key = (item?.sceneSlug || item?.slug || item?.name || '').trim();
+        if (!key) return;
+        this.favoriteSpots.set(key, item);
       });
       this._favoritesLoaded = true;
     } catch (error) {
@@ -1202,29 +978,40 @@ export class MapManager {
     }
   }
 
-  async toggleFavoriteSpot(spotName) {
-    const identifier = this.getSceneIdentifier(spotName);
-    const isFavorite = this.favoriteSpots.has(spotName);
+  async toggleFavoriteSpot(scene) {
+    const key = this.getSceneKey(scene);
+    if (!key) return false;
+    const identifier = this.getSceneIdentifier(key);
+    const isFavorite = this.favoriteSpots.has(key);
 
     if (isFavorite) {
       await removeFavorite(identifier);
-      this.favoriteSpots.delete(spotName);
+      this.favoriteSpots.delete(key);
       return false;
     }
 
     const favorite = await addFavorite(identifier);
     if (favorite) {
-      this.favoriteSpots.set(spotName, favorite);
+      this.favoriteSpots.set(key, favorite);
     } else {
-      // 如果服务器未返回详细信息，至少标记为已收藏
-      this.favoriteSpots.set(spotName, { name: spotName, slug: spotName });
+      this.favoriteSpots.set(key, { name: key, slug: key });
     }
     return true;
   }
 
-  getSceneIdentifier(spotName) {
-    if (!spotName) return {};
-    return { sceneSlug: String(spotName).trim() };
+  getSceneIdentifier(scene) {
+    const slug = this.getSceneKey(scene);
+    if (!slug) return {};
+    return { sceneSlug: slug };
+  }
+
+  getSceneKey(scene) {
+    if (!scene) return '';
+    if (typeof scene === 'string') return scene.trim();
+    if (typeof scene === 'object') {
+      return String(scene.slug || scene.sceneSlug || scene.name || '').trim();
+    }
+    return '';
   }
 
   handleRequestError(error, fallbackMessage, options = {}) {

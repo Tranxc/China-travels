@@ -16,6 +16,7 @@ import {
     showToast,
 } from './auth.js';
 import { resolveAssetUrl } from '../config/assets.js';
+import { SCENES as STATIC_SCENES } from '../../scripts/scenes-data.js';
 
 const DEFAULT_SCENIC_IMAGE = resolveAssetUrl('assets/spots/Beijing_Gugong.avif');
 
@@ -42,6 +43,15 @@ const FALLBACK_SCENE = {
     desc: '这是一处美丽的风景，等待你去探索更多故事。',
     images: ['assets/spots/Beijing_Gugong.avif'],
 };
+
+const LOCAL_SCENES = Array.isArray(STATIC_SCENES) ? STATIC_SCENES : [];
+
+function findLocalScene(identifier) {
+    if (!identifier) return null;
+    const key = String(identifier).trim();
+    if (!key) return null;
+    return LOCAL_SCENES.find((scene) => scene?.slug === key || scene?.name === key) || null;
+}
 
 const state = {
     sceneName: '未知景点',
@@ -122,12 +132,15 @@ async function setupSceneInfo() {
 function applyScenePayload(scene, fallbackSlug) {
     const displayName = (scene?.name && scene.name.trim()) || fallbackSlug || FALLBACK_SCENE.name;
     const slug = (scene?.slug || scene?.sceneSlug || fallbackSlug || displayName || '').trim() || displayName;
-    const summary = (scene?.summary && scene.summary.trim()) || FALLBACK_SCENE.desc;
+    const localScene = findLocalScene(slug) || findLocalScene(displayName);
+    const summary = (scene?.summary && scene.summary.trim())
+        || (localScene?.summary && localScene.summary.trim())
+        || FALLBACK_SCENE.desc;
     const gallerySource = Array.isArray(scene?.images) && scene.images.length
         ? scene.images
         : (scene?.cover_url || scene?.coverUrl
             ? [scene.cover_url || scene.coverUrl]
-            : FALLBACK_SCENE.images);
+            : (localScene?.cover_url ? [localScene.cover_url] : FALLBACK_SCENE.images));
 
     const resolvedImages = resolveSceneImages(gallerySource);
 
@@ -142,15 +155,17 @@ function applyScenePayload(scene, fallbackSlug) {
 }
 
 function applySceneFallback(slug) {
-    const displayName = slug || FALLBACK_SCENE.name;
+    const localScene = findLocalScene(slug);
+    const displayName = localScene?.name || slug || FALLBACK_SCENE.name;
     state.sceneName = displayName;
-    state.sceneSlug = slug || displayName;
-    state.carousel.images = resolveSceneImages(FALLBACK_SCENE.images);
+    state.sceneSlug = localScene?.slug || slug || displayName;
+    const fallbackImages = localScene?.cover_url ? [localScene.cover_url] : (localScene?.images || FALLBACK_SCENE.images);
+    state.carousel.images = resolveSceneImages(fallbackImages);
     state.carousel.current = 0;
 
     if (elements.title) elements.title.textContent = displayName;
     if (elements.name) elements.name.textContent = displayName;
-    if (elements.desc) elements.desc.textContent = FALLBACK_SCENE.desc;
+    if (elements.desc) elements.desc.textContent = localScene?.summary || FALLBACK_SCENE.desc;
 }
 
 function setupCarousel() {
