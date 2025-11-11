@@ -1,6 +1,203 @@
 import { addFavorite, ApiError, fetchFavorites, fetchScene, removeFavorite, submitSceneVote } from './api.js';
 import { clearAuthSession, ensureAuthenticated, getAuthToken, showToast } from './auth.js';
 
+const PROVINCE_METADATA = [
+  {
+    name: '北京市',
+    center: [116.4, 39.9],
+    labelCenter: [116.4, 40.2],
+    searchKeys: ['北京', '帝都', '故宫', '长城', '颐和园', '天坛'],
+  },
+  {
+    name: '天津市',
+    center: [117.2, 39.12],
+    labelCenter: [117.3, 38.9],
+    searchKeys: ['天津', '津门', '古文化街', '意式风情区', '海河'],
+  },
+  {
+    name: '河北省',
+    center: [114.48, 38.03],
+    labelCenter: [114.5, 38.5],
+    searchKeys: ['河北', '冀', '避暑山庄', '山海关', '赵州桥'],
+  },
+  {
+    name: '山西省',
+    center: [112.55, 37.87],
+    labelCenter: [112.5, 37.9],
+    searchKeys: ['山西', '晋', '平遥古城', '云冈石窟', '悬空寺'],
+  },
+  {
+    name: '内蒙古自治区',
+    center: [111.3, 42.0],
+    searchKeys: ['内蒙古', '草原', '呼伦贝尔', '额济纳', '成吉思汗陵'],
+  },
+  {
+    name: '辽宁省',
+    center: [123.3, 41.5],
+    searchKeys: ['辽宁', '辽', '沈阳故宫', '大连星海广场', '本溪水洞'],
+  },
+  {
+    name: '吉林省',
+    center: [125.0, 43.6],
+    searchKeys: ['吉林', '吉', '长白山', '雾凇岛', '净月潭'],
+  },
+  {
+    name: '黑龙江省',
+    center: [127.0, 46.0],
+    searchKeys: ['黑龙江', '龙江', '哈尔滨冰雪大世界', '雪乡', '五大连池'],
+  },
+  {
+    name: '上海市',
+    center: [121.47, 31.23],
+    labelCenter: [121.6, 31.3],
+    searchKeys: ['上海', '申城', '魔都', '外滩', '东方明珠', '豫园', '迪士尼'],
+  },
+  {
+    name: '江苏省',
+    center: [118.7, 32.3],
+    searchKeys: ['江苏', '苏', '苏州园林', '拙政园', '夫子庙', '中山陵'],
+  },
+  {
+    name: '浙江省',
+    center: [120.4, 29.8],
+    searchKeys: ['浙江', '浙', '西湖', '乌镇', '普陀山', '千岛湖'],
+  },
+  {
+    name: '安徽省',
+    center: [117.0, 31.6],
+    searchKeys: ['安徽', '皖', '黄山', '宏村', '九华山'],
+  },
+  {
+    name: '福建省',
+    center: [118.9, 26.4],
+    searchKeys: ['福建', '闽', '鼓浪屿', '武夷山', '土楼'],
+  },
+  {
+    name: '江西省',
+    center: [115.9, 28.9],
+    searchKeys: ['江西', '赣', '庐山', '景德镇', '婺源'],
+  },
+  {
+    name: '山东省',
+    center: [118.5, 36.7],
+    searchKeys: ['山东', '鲁', '泰山', '曲阜', '崂山'],
+  },
+  {
+    name: '河南省',
+    center: [113.5, 34.9],
+    searchKeys: ['河南', '豫', '少林寺', '龙门石窟', '云台山'],
+  },
+  {
+    name: '湖北省',
+    center: [112.5, 30.8],
+    searchKeys: ['湖北', '鄂', '黄鹤楼', '三峡大坝', '神农架'],
+  },
+  {
+    name: '湖南省',
+    center: [112.7, 28.3],
+    searchKeys: ['湖南', '湘', '张家界', '岳阳楼', '凤凰古城'],
+  },
+  {
+    name: '广东省',
+    center: [113.27, 23.13],
+    labelCenter: [113.2, 23.9],
+    searchKeys: ['广东', '粤', '广州塔', '丹霞山', '白云山'],
+  },
+  {
+    name: '广西壮族自治区',
+    center: [108.3, 23.4],
+    searchKeys: ['广西', '壮乡', '桂林山水', '阳朔西街', '德天瀑布'],
+  },
+  {
+    name: '海南省',
+    center: [110.2, 19.8],
+    searchKeys: ['海南', '琼', '三亚', '亚龙湾', '蜈支洲岛'],
+  },
+  {
+    name: '重庆市',
+    center: [106.55, 29.56],
+    labelCenter: [106.4, 29.7],
+    searchKeys: ['重庆', '山城', '洪崖洞', '磁器口', '长江索道'],
+  },
+  {
+    name: '四川省',
+    center: [104.07, 30.67],
+    labelCenter: [103.8, 30.6],
+    searchKeys: ['四川', '蜀', '成都', '宽窄巷子', '九寨沟', '峨眉山', '都江堰'],
+  },
+  {
+    name: '贵州省',
+    center: [106.6, 26.7],
+    searchKeys: ['贵州', '黔', '黄果树瀑布', '西江千户苗寨', '梵净山'],
+  },
+  {
+    name: '云南省',
+    center: [101.5, 25.3],
+    searchKeys: ['云南', '滇', '丽江古城', '洱海', '玉龙雪山', '西双版纳'],
+  },
+  {
+    name: '西藏自治区',
+    center: [91.0, 30.3],
+    searchKeys: ['西藏', '藏', '布达拉宫', '纳木错', '珠峰大本营'],
+  },
+  {
+    name: '陕西省',
+    center: [108.7, 34.0],
+    searchKeys: ['陕西', '陕', '西安', '兵马俑', '华清池', '大雁塔', '华山'],
+  },
+  {
+    name: '甘肃省',
+    center: [103.2, 36.1],
+    searchKeys: ['甘肃', '甘', '敦煌', '莫高窟', '嘉峪关', '张掖丹霞'],
+  },
+  {
+    name: '青海省',
+    center: [97.0, 36.2],
+    searchKeys: ['青海', '青', '青海湖', '茶卡盐湖', '塔尔寺'],
+  },
+  {
+    name: '宁夏回族自治区',
+    center: [106.3, 38.6],
+    searchKeys: ['宁夏', '宁', '沙坡头', '沙湖', '镇北堡'],
+  },
+  {
+    name: '新疆维吾尔自治区',
+    center: [87.4, 43.9],
+    searchKeys: ['新疆', '新', '喀纳斯', '天山天池', '赛里木湖', '火焰山'],
+  },
+  {
+    name: '台湾省',
+    center: [121.2, 24.1],
+    searchKeys: ['台湾', '台', '台北', '日月潭', '阿里山', '垦丁'],
+  },
+  {
+    name: '香港特别行政区',
+    center: [114.15, 22.4],
+    searchKeys: ['香港', '港', '维多利亚港', '太平山顶', '迪士尼'],
+  },
+  {
+    name: '澳门特别行政区',
+    center: [113.55, 22.2],
+    searchKeys: ['澳门', '澳', '大三巴牌坊', '官也街', '新葡京'],
+  },
+];
+
+const PROVINCE_CENTERS = {};
+const PROVINCE_KEYWORD_MAP = {};
+const PROVINCE_LABEL_DATA = [];
+
+PROVINCE_METADATA.forEach((province) => {
+  const { name, center, labelCenter, searchKeys = [] } = province;
+  PROVINCE_CENTERS[name] = center;
+  PROVINCE_LABEL_DATA.push({ name, center: labelCenter || center });
+  const keywords = new Set([name, ...searchKeys]);
+  keywords.forEach((keyword) => {
+    PROVINCE_KEYWORD_MAP[keyword] = name;
+  });
+});
+
+const ALL_SEARCH_KEYWORDS = Object.keys(PROVINCE_KEYWORD_MAP);
+
 export class MapManager {
   constructor() {
     this.map = null;
@@ -9,20 +206,9 @@ export class MapManager {
     this.hoverProvince = null;
     this.favorites = new Set();
     this.votes = new Map();
-    this.spotToProvince = {
-      '故宫': '北京市',
-      '长城': '北京市',
-      '颐和园': '北京市',
-      '外滩': '上海市',
-      '东方明珠': '上海市',
-      '豫园': '上海市',
-      '广州塔': '广东省',
-      '白云山': '广东省',
-      '宽窄巷子': '四川省',
-      '都江堰': '四川省',
-      '避暑山庄': '河北省',
-      '赵州桥': '河北省'
-    };
+    this.spotToProvince = { ...PROVINCE_KEYWORD_MAP };
+    this.provinceCenters = { ...PROVINCE_CENTERS };
+    this.allSearchKeys = [...ALL_SEARCH_KEYWORDS];
     this._onSmartSearchEvent = this.onSmartSearchEvent.bind(this);
     this.favoriteSpots = new Map();
     this._favoritesLoaded = false;
@@ -671,42 +857,7 @@ export class MapManager {
 
   /** 美观的省份文字标签图层（带缩放控制与防重叠） */
   addProvinceLabels() {
-    const provinces = [
-      { name: '北京市', center: [116.4, 40.2] },   // 稍往北偏
-      { name: '天津市', center: [117.3, 38.9] },   // 稍往南偏
-      { name: '河北省', center: [114.5, 38.5] },   // 正常即可
-      { name: '山西省', center: [112.5, 37.9] },
-      { name: '内蒙古自治区', center: [111.3, 42.0] },
-      { name: '辽宁省', center: [123.3, 41.5] },
-      { name: '吉林省', center: [125.0, 43.6] },
-      { name: '黑龙江省', center: [127.0, 46.0] },
-      { name: '上海市', center: [121.6, 31.3] },   // 稍往东
-      { name: '江苏省', center: [118.7, 32.3] },
-      { name: '浙江省', center: [120.4, 29.8] },
-      { name: '安徽省', center: [117.0, 31.6] },
-      { name: '福建省', center: [118.9, 26.4] },
-      { name: '江西省', center: [115.9, 28.9] },
-      { name: '山东省', center: [118.5, 36.7] },
-      { name: '河南省', center: [113.5, 34.9] },
-      { name: '湖北省', center: [112.5, 30.8] },
-      { name: '湖南省', center: [112.7, 28.3] },
-      { name: '广东省', center: [113.2, 23.9] },
-      { name: '广西壮族自治区', center: [108.3, 23.4] },
-      { name: '海南省', center: [110.2, 19.8] },
-      { name: '重庆市', center: [106.4, 29.7] },   // 稍往西
-      { name: '四川省', center: [103.8, 30.6] },
-      { name: '贵州省', center: [106.6, 26.7] },
-      { name: '云南省', center: [101.5, 25.3] },
-      { name: '西藏自治区', center: [91.0, 30.3] },
-      { name: '陕西省', center: [108.7, 34.0] },
-      { name: '甘肃省', center: [103.2, 36.1] },
-      { name: '青海省', center: [97.0, 36.2] },
-      { name: '宁夏回族自治区', center: [106.3, 38.6] },
-      { name: '新疆维吾尔自治区', center: [87.4, 43.9] },
-      { name: '台湾省', center: [121.2, 24.1] },
-      { name: '香港特别行政区', center: [114.15, 22.4] },
-      { name: '澳门特别行政区', center: [113.55, 22.2] }
-    ];
+    const provinces = PROVINCE_LABEL_DATA;
 
     // ✅ 创建文字标注图层，控制显示范围
     const labelLayer = new AMap.LabelsLayer({
@@ -890,15 +1041,7 @@ export class MapManager {
     }
 
     // ✅ 获取该省份的中心坐标
-    const provinceCenters = {
-      '北京市': [116.4, 39.9],
-      '上海市': [121.47, 31.23],
-      '广东省': [113.27, 23.13],
-      '四川省': [104.07, 30.67],
-      '河北省': [114.48, 38.03],
-    };
-
-    const center = provinceCenters[province];
+    const center = this.provinceCenters?.[province];
     if (!center) {
       showToast(`暂未定义 ${province} 的中心坐标`, { type: 'warning' });
       return;
@@ -907,7 +1050,6 @@ export class MapManager {
     // ✅ 地图平滑移动并放大
     this.map.setZoomAndCenter(7, center);
     this.hoverProvince = province;
-    // 修正 handleSearch 相关 setStyles 调用
     if (this.geoJsonLayer) {
       this.geoJsonLayer.setStyles({
         fill: () => '#f8e8a6',
@@ -941,10 +1083,9 @@ export class MapManager {
     }
 
     // 获取所有关键词（景点 + 省份）
-    const allKeys = [
-      ...Object.keys(this.spotToProvince),
-      ...new Set(Object.values(this.spotToProvince))
-    ];
+    const keywordPool = this.allSearchKeys?.length ? this.allSearchKeys : Object.keys(this.spotToProvince || {});
+    const provinceNames = Object.keys(this.provinceCenters || {});
+    const allKeys = Array.from(new Set([...keywordPool, ...provinceNames]));
 
     // 模糊匹配前 8 个
     const results = allKeys.filter(k => k.includes(keyword)).slice(0, 8);
@@ -988,15 +1129,7 @@ export class MapManager {
       return;
     }
 
-    const provinceCenters = {
-      '北京市': [116.4, 39.9],
-      '上海市': [121.47, 31.23],
-      '广东省': [113.27, 23.13],
-      '四川省': [104.07, 30.67],
-      '河北省': [114.48, 38.03]
-    };
-
-    const center = provinceCenters[province];
+    const center = this.provinceCenters?.[province];
     if (!center) {
       showToast(`暂未定义 ${province} 的坐标`, { type: 'warning' });
       return;
