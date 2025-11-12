@@ -56,7 +56,7 @@
     color: #fff;
 }
 
-/* 表单面板 - 关键修复! */
+/* 表单面板 */
 .auth-pane {
     display: block !important;
 }

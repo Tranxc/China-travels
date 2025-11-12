@@ -369,19 +369,38 @@ export class MapManager {
     }
   }
 
-  async showDetailPanel(item) {
+  async showDetailPanel(item = {}) {
     const panel = document.getElementById('detail-panel');
     if (!panel) return;
 
+    const focusScene = item?.scene || null;
     const shouldDelayDrawer = this.hideMarkerInfoPanel();
-    document.getElementById('detail-title').textContent = item.name;
+    const drawerDelay = shouldDelayDrawer ? 200 : 60;
+    this.queueDetailDrawer(panel, drawerDelay);
 
-    const provinceScenes = this.getScenesForProvince(item.name);
-    const spots = provinceScenes.map((scene) => ({
-      name: scene?.name || scene?.slug || item.name,
-      slug: scene?.slug || scene?.name,
-      img: scene?.img || resolveAssetUrl(scene?.cover_url || scene?.coverUrl || ''),
-    }));
+    const titleEl = document.getElementById('detail-title');
+    if (titleEl) {
+      titleEl.textContent = focusScene?.name || item.name;
+    }
+
+    const normalizeScene = (scene) => {
+      if (!scene) return null;
+      const name = scene.name || scene.slug || item.name;
+      const slug = scene.slug || scene.name;
+      const img = scene.img || resolveAssetUrl(scene.cover_url || scene.coverUrl || '');
+      if (!name && !img) return null;
+      return {
+        ...scene,
+        name,
+        slug,
+        img,
+      };
+    };
+
+    const sourceScenes = focusScene ? [focusScene] : this.getScenesForProvince(item.name);
+    const spots = (Array.isArray(sourceScenes) ? sourceScenes : [])
+      .map(normalizeScene)
+      .filter(Boolean);
     const track = document.getElementById('carousel-track');
     const caption = document.getElementById('carousel-caption');
     this.clearCarouselAutoPlay();
@@ -441,6 +460,7 @@ export class MapManager {
     const closeBtn = document.getElementById('close-detail-btn');
     if (closeBtn) {
       closeBtn.onclick = () => {
+        this.cancelDetailDrawerTimer();
         this.clearCarouselAutoPlay();
         const panel = document.getElementById('detail-panel');
         panel.classList.remove('show');
@@ -664,6 +684,23 @@ export class MapManager {
     // Force a reflow so the slide-up animation restarts even on consecutive opens
     void panel.offsetWidth;
     panel.classList.add('show');
+  }
+
+  cancelDetailDrawerTimer() {
+    if (this._detailDrawerTimer) {
+      clearTimeout(this._detailDrawerTimer);
+      this._detailDrawerTimer = null;
+    }
+  }
+
+  queueDetailDrawer(panel, delay = 0) {
+    if (!panel) return;
+    this.cancelDetailDrawerTimer();
+    const wait = Math.max(delay, 0);
+    this._detailDrawerTimer = setTimeout(() => {
+      this._detailDrawerTimer = null;
+      this.openDetailDrawer(panel);
+    }, wait);
   }
 
   bindDetailPanelEvents() {
@@ -1010,14 +1047,21 @@ export class MapManager {
 
   /** 执行搜索 */
   handleSearch(keyword) {
-    if (!keyword) {
+    const term = (keyword || '').trim();
+    if (!term) {
       showToast('请输入景点或省份名称', { type: 'warning' });
       return;
     }
 
-    let province = this.spotToProvince[keyword];
+    const matchedScene = this.sceneLookup.get(term) || null;
+
+    let province = this.spotToProvince[term];
     if (!province) {
-      province = Object.values(this.spotToProvince).includes(keyword) ? keyword : null;
+      province = Object.values(this.spotToProvince).includes(term) ? term : null;
+    }
+
+    if (!province && matchedScene?.province) {
+      province = matchedScene.province;
     }
 
     if (!province) {
@@ -1049,11 +1093,18 @@ export class MapManager {
 
     // 打开右侧信息面板
     const panel = document.getElementById('marker-info-panel');
-    document.getElementById('info-title').textContent = province;
-    document.getElementById('info-desc').textContent = this.getProvinceTagline(province);
+    const infoTitle = document.getElementById('info-title');
+    const infoDesc = document.getElementById('info-desc');
+    if (matchedScene && infoTitle && infoDesc) {
+      infoTitle.textContent = matchedScene.name || province;
+      infoDesc.textContent = matchedScene.summary || this.getProvinceTagline(province);
+    } else {
+      if (infoTitle) infoTitle.textContent = province;
+      if (infoDesc) infoDesc.textContent = this.getProvinceTagline(province);
+    }
 
     const detailBtn = document.getElementById('detail-btn');
-    detailBtn.onclick = () => this.showDetailPanel({ name: province, position: center });
+    detailBtn.onclick = () => this.showDetailPanel({ name: province, position: center, scene: matchedScene || null });
 
     panel.classList.remove('hidden');
     panel.classList.add('show');

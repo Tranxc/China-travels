@@ -70,7 +70,6 @@ html {
   z-index: 1000;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
   flex-wrap: nowrap;
-  /* 确保不换行 */
 }
 
 /* 左侧标题 + 按钮 */
@@ -79,9 +78,7 @@ html {
   align-items: center;
   gap: 20px;
   flex: 1;
-  /* ✅ 让左侧占据可伸缩空间 */
   min-width: 0;
-  /* ✅ 防止搜索栏撑爆 */
 }
 
 .brand {
@@ -125,7 +122,6 @@ html {
   align-items: center;
   gap: 12px;
   flex-shrink: 0;
-  /* ✅ 防止被压缩 */
   margin-right: 40px;
 }
 
@@ -150,19 +146,9 @@ html {
   background: #e0e0e0;
 }
 
-/* 防止导航栏遮住地图
-#map-container {
-  position: absolute;
-  top: 60px;
-  left: 0;
-  width: 100%;
-  height: calc(100vh - 60px);
-} */
-
 #marker-info-panel {
   position: absolute;
   top: 60px;
-  /* 顶部栏高度 */
   right: 0;
   width: 280px;
   height: calc(100vh - 60px);
@@ -481,9 +467,7 @@ body {
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
   overflow: hidden;
   border: 3px solid #d4b76a;
-  /* 金黄色描边 */
   background: #f7eecb;
-  /* 底色黄 */
 }
 
 /* 古风文字与控件微调 */
@@ -548,7 +532,6 @@ body::before {
   z-index: 1;
 }
 
-/* 顶栏微调，柔和金色调 */
 .topbar,
 .toolbar-buttons button {
   background-color: rgba(255, 248, 225, 0.85);
@@ -564,7 +547,6 @@ button:hover {
   color: #4b3412;
 }
 
-/* 自动补全列表 */
 .suggest-list {
   position: absolute;
   top: 35px;
@@ -589,7 +571,6 @@ button:hover {
   background: #f2eaff;
 }
 
-/* 让搜索框容器成为定位上下文 */
 .toolbar-buttons {
   position: relative;
   display: flex;
@@ -600,10 +581,8 @@ button:hover {
 .suggest-list {
   position: absolute;
   top: 100%;
-  /* ✅ 紧贴搜索框下方 */
   left: 0;
   width: 180px;
-  /* 可与搜索框宽度相同 */
   background: #fff;
   border: 1px solid #ddd;
   border-top: none;
@@ -624,7 +603,6 @@ button:hover {
 
 .suggest-list li:hover {
   background-color: #f3f0ff;
-  /* 柔和的淡紫背景 */
 }
 
 .hidden {
@@ -703,7 +681,6 @@ button:hover {
 
 #help-btn {
   display: flex;
-  /* ✅ 使用 Flex 居中 */
   align-items: center;
   justify-content: center;
   background: none;
@@ -714,18 +691,14 @@ button:hover {
   font-weight: bold;
   font-size: 15px;
   line-height: 1;
-  /* 防止文字偏移 */
   cursor: pointer;
   margin-left: 6px;
   transition: 0.2s;
   color: #444;
   padding: 0;
-  /* ✅ 去掉默认内边距 */
   transform: translateX(2px);
   padding-left: 7px;
-  /* ✅ 向右平移约 1px */
   font-family: "Segoe UI Symbol", "Arial", sans-serif;
-  /* ✅ 英文字体渲染更均匀 */
 }
 
 #help-btn:hover {
@@ -743,9 +716,7 @@ button:hover {
   width: 340px;
   max-height: 80vh;
   background: #fdf8e7;
-  /* ✅ 柔和米黄色 */
   border: 2px solid #d4b574;
-  /* ✅ 仿古金边 */
   border-radius: 16px;
   box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
   padding: 18px 22px;
@@ -755,9 +726,6 @@ button:hover {
   font-family: "PingFang SC", "Noto Serif SC", serif;
   color: #443322;
 }
-
-
-
 
 /* 隐藏与显示动画 */
 #marker-info-panel.hidden {
@@ -809,7 +777,6 @@ button:hover {
   color: #fedd37;
 }
 
-/* === 信息正文 === */
 #info-desc {
   line-height: 1.6;
   margin: 10px 0 15px;
@@ -973,7 +940,6 @@ button:hover {
   position: relative;
   width: 100%;
   height: 190px;
-  /* 右侧窄面板专用高度 */
   overflow: hidden;
   border-radius: 10px;
   margin-bottom: 10px;
@@ -1000,11 +966,9 @@ button:hover {
   position: relative;
   width: min(960px, 90vw);
   max-width: 100%;
-  /* 详情页大图区域更宽 */
   aspect-ratio: 4 / 3;
   height: auto;
   max-height: 70vh;
-  /* 纵向更充足但不过高 */
   margin: 0 auto 14px;
   overflow: hidden;
   border-radius: 12px;
@@ -1029,13 +993,11 @@ button:hover {
   object-fit: cover;
 }
 
-/* 详情页的箭头按钮稍大且位于图片之上 */
 #detail-panel .carousel-arrow {
   position: absolute;
   top: 50%;
   transform: translateY(-50%);
   z-index: 5;
-  /* 确保在图片上层 */
   width: 40px;
   height: 40px;
 }
@@ -1068,29 +1030,46 @@ button:hover {
 /* 全屏详情页从底部滑入 */
 #detail-panel {
   position: fixed;
+  top: 0;
   left: 0;
-  bottom: 0;
   width: 100%;
-  height: 95vh;
+  height: 100vh;
+  min-height: 100vh;
+  max-height: 100vh;
   background:
     linear-gradient(rgba(255, 252, 240, 0.669), rgba(255, 252, 240, 0.596)),
     url("https://assets.235800.xyz/assets/paper-texture.avif");
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  border-top-left-radius: 18px;
-  border-top-right-radius: 18px;
+  border-radius: 0;
   box-shadow: 0 -4px 18px rgba(0, 0, 0, 0.15);
   transform: translateY(100%);
-  /* ✅ 初始在底部不可见 */
   transition: transform 0.5s cubic-bezier(0.25, 0.8, 0.3, 1);
-  /* ✅ 顺滑上拉 */
   z-index: 3000;
-  /* ✅ 确保在右侧信息窗上方 */
   display: flex;
   flex-direction: column;
   overflow-y: auto;
-  padding: 24px 36px;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 24px clamp(20px, 4vw, 48px);
+  padding-top: calc(28px + env(safe-area-inset-top, 0px));
+  padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px));
+  overscroll-behavior: contain;
+  contain: layout paint;
+}
+
+#detail-panel::-webkit-scrollbar {
+  display: none;
+}
+
+@supports (height: 100dvh) {
+  #detail-panel {
+    height: 100dvh;
+    min-height: 100dvh;
+    max-height: 100dvh;
+  }
 }
 
 #detail-panel.show {
@@ -1101,18 +1080,14 @@ button:hover {
   transform: translateY(100%);
 }
 
-/* === 详情页层级修复 === */
 #marker-info-panel {
   z-index: 2000;
-  /* 右侧信息窗 */
 }
 
 #detail-panel {
   z-index: 3000;
-  /* ✅ 详情页在上层 */
 }
 
-/* ====== 详情页顶部问号按钮 ====== */
 #detail-help-btn {
   width: 30px;
   height: 30px;
@@ -1457,17 +1432,13 @@ button:hover {
 
 #favorite-spot-btn {
   display: block;
-  /* 变成块级 */
   margin: 10px auto 0;
-  /* 自动左右外边距 */
   text-align: center;
   width: fit-content;
-  /* 按内容自适应宽度 */
 }
 
 #detail-content {
   display: flex;
   flex-direction: column;
   align-items: center;
-  /* ✅ 水平居中对齐所有内容 */
 }

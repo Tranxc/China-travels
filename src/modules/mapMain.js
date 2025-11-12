@@ -1,4 +1,3 @@
-// src/modules/mapMain.js
 import { MapManager } from './map.js';
 import { MapEvents } from './mapEvents.js';
 

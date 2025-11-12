@@ -112,7 +112,6 @@ body {
   backdrop-filter: blur(4px);
 }
 
-/* 🌿 大标题：使用书法字体 */
 /* 文字容器 */
 .overlay {
   position: relative;
@@ -120,14 +119,10 @@ body {
   width: min(980px, 90vw);
   padding: clamp(24px, 5vw, 40px);
   border-radius: 0;
-  /* ✅ 不再需要圆角 */
   background: transparent;
-  /* ✅ 移除灰色背景 */
   box-shadow: none;
-  /* ✅ 移除阴影 */
   animation: fadeUp 1.2s ease;
   backdrop-filter: none;
-  /* ✅ 不再模糊 */
 }
 
 .place {
