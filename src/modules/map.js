@@ -72,6 +72,7 @@ export class MapManager {
     this.sceneLookup = new Map(STATIC_SCENE_LOOKUP);
     this.extendSceneKeywords(STATIC_SCENE_KEYWORDS);
     this._carouselTimer = null;
+    this._detailDrawerTimer = null;
   }
 
   /** 初始化地图 */
@@ -370,6 +371,9 @@ export class MapManager {
 
   async showDetailPanel(item) {
     const panel = document.getElementById('detail-panel');
+    if (!panel) return;
+
+    const shouldDelayDrawer = this.hideMarkerInfoPanel();
     document.getElementById('detail-title').textContent = item.name;
 
     const provinceScenes = this.getScenesForProvince(item.name);
@@ -621,9 +625,21 @@ export class MapManager {
       };
     });
 
-    panel.classList.remove('hidden');
-    panel.classList.add('show');
+    const openDrawer = () => {
+      this._detailDrawerTimer = null;
+      this.openDetailDrawer(panel);
+    };
 
+    if (this._detailDrawerTimer) {
+      clearTimeout(this._detailDrawerTimer);
+      this._detailDrawerTimer = null;
+    }
+
+    if (shouldDelayDrawer) {
+      this._detailDrawerTimer = setTimeout(openDrawer, 250);
+    } else {
+      openDrawer();
+    }
   }
 
   clearCarouselAutoPlay() {
@@ -631,6 +647,23 @@ export class MapManager {
       clearInterval(this._carouselTimer);
       this._carouselTimer = null;
     }
+  }
+
+  hideMarkerInfoPanel(panel = document.getElementById('marker-info-panel')) {
+    if (!panel) return false;
+    const wasVisible = panel.classList.contains('show') && !panel.classList.contains('hidden');
+    panel.classList.remove('show');
+    panel.classList.add('hidden');
+    return wasVisible;
+  }
+
+  openDetailDrawer(panel = document.getElementById('detail-panel')) {
+    if (!panel) return;
+    panel.classList.remove('show');
+    panel.classList.remove('hidden');
+    // Force a reflow so the slide-up animation restarts even on consecutive opens
+    void panel.offsetWidth;
+    panel.classList.add('show');
   }
 
   bindDetailPanelEvents() {

@@ -9,6 +9,12 @@ html {
   text-rendering: optimizeLegibility;
 }
 
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 .map-toolbar {
   position: absolute;
   top: 10px;
@@ -1177,6 +1183,192 @@ button:hover {
   padding: 6px 14px;
   cursor: pointer;
   transition: background 0.2s;
+}
+
+@media (max-width: 1200px) {
+  .map-wrapper {
+    padding: 80px 32px 40px;
+    height: auto;
+  }
+
+  #map-container {
+    width: 100%;
+    height: 70vh;
+  }
+
+  #marker-info-panel {
+    right: 24px;
+  }
+}
+
+@media (max-width: 900px) {
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+    overflow: auto;
+  }
+
+  .topbar {
+    position: relative;
+    flex-wrap: wrap;
+    height: auto;
+    padding: 12px 20px 20px;
+    gap: 12px;
+  }
+
+  .topbar-left {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+
+  .toolbar-buttons {
+    width: 100%;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .toolbar-buttons input {
+    flex: 1 1 100%;
+    max-width: 100%;
+  }
+
+  .toolbar-buttons button {
+    flex: 1 1 calc(50% - 8px);
+    min-width: 140px;
+  }
+
+  .topbar-right {
+    width: 100%;
+    justify-content: flex-start;
+    margin-right: 0;
+  }
+
+  .map-wrapper {
+    padding-top: 120px;
+  }
+
+  .map-toolbar {
+    top: 88px;
+    right: auto;
+    left: 12px;
+  }
+
+  #marker-info-panel {
+    right: 12px;
+  }
+}
+
+@media (max-width: 768px) {
+  .map-wrapper {
+    padding: 120px 16px 32px;
+  }
+
+  #map-container {
+    height: 60vh;
+  }
+
+  .toolbar-buttons button {
+    flex: 1 1 100%;
+  }
+
+  .topbar-right {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .user-menu button {
+    width: 100%;
+  }
+
+  .carousel-container {
+    height: 280px;
+  }
+
+  .like-section {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  #marker-info-panel {
+    position: fixed;
+    top: auto;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    width: 100%;
+    max-height: 55vh;
+    border-radius: 20px 20px 0 0;
+    box-shadow: 0 -6px 20px rgba(0, 0, 0, 0.2);
+    transform: translateY(0);
+    padding: 18px;
+  }
+
+  #marker-info-panel.hidden {
+    transform: translateY(100%);
+  }
+
+  #marker-info-panel.show {
+    transform: translateY(0);
+  }
+
+  #detail-panel {
+    height: 90vh;
+    padding: 18px 20px 40px;
+  }
+
+  #detail-panel .carousel-container {
+    height: 280px;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar-left,
+  .topbar-right {
+    align-items: stretch;
+  }
+
+  .toolbar-buttons {
+    gap: 6px;
+  }
+
+  .toolbar-buttons button,
+  .toolbar-buttons input {
+    flex: 1 1 100%;
+  }
+
+  #map-container {
+    height: 55vh;
+  }
+
+  .carousel-container,
+  #detail-panel .carousel-container {
+    height: 220px;
+  }
+
+  .carousel-caption {
+    font-size: 16px;
+  }
+
+  .favorite-btn,
+  #favorite-spot-btn {
+    width: 100%;
+  }
+
+  .map-toolbar {
+    left: 8px;
+    right: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .map-toolbar button {
+    flex: 1 1 calc(50% - 8px);
+  }
 }
 
 .detail-help-content button:hover {

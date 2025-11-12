@@ -164,3 +164,80 @@ footer {
   padding: 28px 0 36px;
   background: rgba(20, 20, 20, .32);
 }
+
+@media (max-width: 1024px) {
+  .navbar {
+    padding: 0 32px;
+  }
+
+  .overlay {
+    width: min(820px, 92vw);
+  }
+}
+
+@media (max-width: 768px) {
+  html,
+  body {
+    height: auto;
+    min-height: 100%;
+    overflow: auto;
+  }
+
+  .navbar {
+    padding: 0 24px;
+  }
+
+  .logo {
+    font-size: 1.3rem;
+  }
+
+  .navbar nav {
+    gap: 18px;
+  }
+
+  .scene {
+    padding: clamp(16px, 6vw, 32px);
+  }
+
+  .overlay {
+    padding: clamp(20px, 6vw, 32px);
+  }
+}
+
+@media (max-width: 560px) {
+  .navbar {
+    flex-direction: column;
+    height: auto;
+    gap: 12px;
+    padding: 12px 20px;
+  }
+
+  .navbar nav {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+  }
+
+  .scenes {
+    margin-top: 96px;
+    height: calc(100dvh - 96px);
+  }
+
+  .scene {
+    min-height: calc(100dvh - 96px);
+  }
+
+  .place {
+    font-size: 1rem;
+  }
+
+  .poem {
+    font-size: clamp(1rem, 5vw, 1.15rem);
+    line-height: 1.7;
+  }
+
+  footer {
+    padding: 20px;
+  }
+}
