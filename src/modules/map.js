@@ -681,7 +681,6 @@ export class MapManager {
     if (!panel) return;
     panel.classList.remove('show');
     panel.classList.remove('hidden');
-    // Force a reflow so the slide-up animation restarts even on consecutive opens
     void panel.offsetWidth;
     panel.classList.add('show');
   }
