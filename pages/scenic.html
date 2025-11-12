@@ -270,6 +270,7 @@
       font-size: 15px;
       background: #fffbe9;
       color: #a1791b;
+      box-sizing: border-box;
     }
 
     button.submit-comment {
@@ -352,6 +353,91 @@
       background: #b58929;
     }
 
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.4);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+    }
+
+    .modal-card {
+      width: min(420px, 90vw);
+      background: #fdf8e3;
+      border: 2px solid #e2c56b;
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.15);
+      color: #a1791b;
+    }
+
+    .modal-card h3 {
+      margin: 0 0 10px;
+      color: #b58929;
+      font-size: 18px;
+    }
+
+    .modal-card p {
+      margin: 0 0 12px;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    .modal-textarea {
+      width: 100%;
+      min-height: 90px;
+      border: 1px solid #e2c56b;
+      border-radius: 8px;
+      padding: 10px;
+      resize: none;
+      background: #fffbe9;
+      color: #a1791b;
+      font-family: inherit;
+      box-sizing: border-box;
+    }
+
+    .modal-actions {
+      margin-top: 16px;
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+    }
+
+    .modal-button {
+      min-width: 90px;
+      border: none;
+      border-radius: 999px;
+      padding: 8px 16px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    .modal-button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+    }
+
+    .modal-button--cancel {
+      background: #f4e5b2;
+      color: #b58929;
+    }
+
+    .modal-button--cancel:hover:not(:disabled) {
+      background: #e8d27b;
+    }
+
+    .modal-button--primary {
+      background: #d4a933;
+      color: #fff;
+    }
+
+    .modal-button--primary:hover:not(:disabled) {
+      background: #b58929;
+    }
+
     .hidden {
       display: none;
     }
@@ -392,6 +478,29 @@
 
   <div id="components">
     <div include-html="../src/components/auth-modal.html"></div>
+  </div>
+
+  <div class="modal-overlay hidden" id="report-modal">
+    <div class="modal-card">
+      <h3>举报评论</h3>
+      <p>请告诉我们举报的原因，我们会尽快跟进处理。</p>
+      <textarea id="report-reason" class="modal-textarea" placeholder="可选填写 200 字以内的说明"></textarea>
+      <div class="modal-actions">
+        <button type="button" id="report-cancel" class="modal-button modal-button--cancel">取消</button>
+        <button type="button" id="report-submit" class="modal-button modal-button--primary">提交</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-overlay hidden" id="delete-modal">
+    <div class="modal-card">
+      <h3>删除评论</h3>
+      <p>确定删除这条评论？此操作无法恢复。</p>
+      <div class="modal-actions">
+        <button type="button" id="delete-cancel" class="modal-button modal-button--cancel">取消</button>
+        <button type="button" id="delete-confirm" class="modal-button modal-button--primary">删除</button>
+      </div>
+    </div>
   </div>
 
   <script type="module" src="../src/modules/scenic-page.js"></script>

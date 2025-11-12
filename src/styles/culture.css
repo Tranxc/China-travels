@@ -70,6 +70,7 @@ body {
   scrollbar-width: none;
   -ms-overflow-style: none;
   scroll-behavior: smooth;
+  scroll-snap-type: y mandatory;
 }
 
 /* 隐藏滚动条 */
@@ -87,6 +88,8 @@ body {
   padding: clamp(16px, 4vw, 48px);
   background:
     var(--bg, radial-gradient(1200px 800px at 50% 50%, #2a2a2a, #0f0f0f)) no-repeat center / cover fixed;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 .scene::after {

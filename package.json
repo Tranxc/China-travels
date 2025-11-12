@@ -9,7 +9,8 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "upload:assets": "node scripts/upload-assets.js assets china-travels"
   },
   "devDependencies": {
     "vite": "^5.0.0"

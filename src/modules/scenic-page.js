@@ -19,6 +19,7 @@ import { resolveAssetUrl } from '../config/assets.js';
 import { SCENES as STATIC_SCENES } from '../../scripts/scenes-data.js';
 
 const DEFAULT_SCENIC_IMAGE = resolveAssetUrl('assets/spots/Beijing_Gugong.avif');
+const REPORT_REASON_LIMIT = 200;
 
 function resolveSceneImages(source) {
     const list = Array.isArray(source)
@@ -61,6 +62,8 @@ const state = {
         images: [],
         current: 0,
     },
+    reportTargetId: null,
+    deleteTargetId: null,
 };
 
 const elements = {};
@@ -75,6 +78,8 @@ async function initPage() {
     await setupSceneInfo();
     setupCarousel();
     setupImageOverlay();
+    setupReportModal();
+    setupDeleteModal();
     bindCommentEvents();
     await refreshComments();
 }
@@ -106,6 +111,13 @@ function cacheElements() {
     elements.commentList = document.getElementById('comment-list');
     elements.commentInput = document.getElementById('comment-text');
     elements.submitComment = document.getElementById('submit-comment');
+    elements.reportModal = document.getElementById('report-modal');
+    elements.reportTextarea = document.getElementById('report-reason');
+    elements.reportSubmit = document.getElementById('report-submit');
+    elements.reportCancel = document.getElementById('report-cancel');
+    elements.deleteModal = document.getElementById('delete-modal');
+    elements.deleteConfirm = document.getElementById('delete-confirm');
+    elements.deleteCancel = document.getElementById('delete-cancel');
 }
 
 async function setupSceneInfo() {
@@ -407,14 +419,7 @@ async function submitReply(commentId) {
 
 async function reportCommentHandler(commentId) {
     if (!ensureAuthenticated({ message: '请先登录以举报评论' })) return;
-
-    const reason = prompt('请输入举报理由（可选）：') || undefined;
-    try {
-        await reportComment(commentId, reason);
-        showToast('感谢您的反馈，我们会尽快处理', { type: 'success' });
-    } catch (error) {
-        handleApiError(error, '举报失败，请稍后再试');
-    }
+    openReportModal(commentId);
 }
 
 async function deleteCommentHandler(commentId) {
@@ -427,15 +432,137 @@ async function deleteCommentHandler(commentId) {
 
     if (!ensureAuthenticated({ message: '请先登录以删除评论' })) return;
 
-    const confirmed = confirm('确定删除这条评论吗？');
-    if (!confirmed) return;
+    openDeleteModal(commentId);
+}
 
+function setupReportModal() {
+    if (!elements.reportModal) return;
+    if (elements.reportTextarea) {
+        elements.reportTextarea.maxLength = REPORT_REASON_LIMIT;
+    }
+    elements.reportCancel?.addEventListener('click', closeReportModal);
+    elements.reportSubmit?.addEventListener('click', submitReportReason);
+    elements.reportTextarea?.addEventListener('input', updateReportSubmitState);
+    elements.reportModal.addEventListener('click', (event) => {
+        if (event.target === elements.reportModal) {
+            closeReportModal();
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !elements.reportModal.classList.contains('hidden')) {
+            closeReportModal();
+        }
+    });
+    updateReportSubmitState();
+}
+
+function openReportModal(commentId) {
+    state.reportTargetId = commentId;
+    if (elements.reportTextarea) {
+        elements.reportTextarea.value = '';
+        setTimeout(() => elements.reportTextarea?.focus(), 0);
+    }
+    elements.reportModal?.classList.remove('hidden');
+    updateReportSubmitState();
+}
+
+function closeReportModal() {
+    state.reportTargetId = null;
+    if (!elements.reportModal) return;
+    elements.reportModal.classList.add('hidden');
+}
+
+function updateReportSubmitState() {
+    const button = elements.reportSubmit;
+    if (!button || button.dataset.busy === '1') return;
+    const hasText = Boolean(elements.reportTextarea && elements.reportTextarea.value.trim());
+    if (hasText) {
+        button.removeAttribute('disabled');
+    } else {
+        button.setAttribute('disabled', 'true');
+    }
+}
+
+async function submitReportReason() {
+    if (!state.reportTargetId) return;
+    if (!ensureAuthenticated({ message: '请先登录以举报评论' })) {
+        closeReportModal();
+        return;
+    }
+
+    const rawReason = elements.reportTextarea ? elements.reportTextarea.value : '';
+    const reason = rawReason.trim().slice(0, REPORT_REASON_LIMIT);
+    if (!reason) {
+        showToast('请填写举报理由', { type: 'warning' });
+        elements.reportTextarea?.focus();
+        updateReportSubmitState();
+        return;
+    }
+
+    const button = elements.reportSubmit;
+    if (button) {
+        button.dataset.busy = '1';
+        button.setAttribute('disabled', 'true');
+    }
     try {
-        await deleteComment(commentId);
+        await reportComment(state.reportTargetId, reason);
+        showToast('感谢您的反馈，我们会尽快处理', { type: 'success' });
+        closeReportModal();
+    } catch (error) {
+        handleApiError(error, '举报失败，请稍后再试');
+    } finally {
+        if (button) {
+            button.removeAttribute('disabled');
+            delete button.dataset.busy;
+        }
+        updateReportSubmitState();
+    }
+}
+
+function setupDeleteModal() {
+    if (!elements.deleteModal) return;
+    elements.deleteCancel?.addEventListener('click', closeDeleteModal);
+    elements.deleteConfirm?.addEventListener('click', confirmDeleteComment);
+    elements.deleteModal.addEventListener('click', (event) => {
+        if (event.target === elements.deleteModal) {
+            closeDeleteModal();
+        }
+    });
+    document.addEventListener('keydown', (event) => {
+        if (event.key === 'Escape' && !elements.deleteModal.classList.contains('hidden')) {
+            closeDeleteModal();
+        }
+    });
+}
+
+function openDeleteModal(commentId) {
+    state.deleteTargetId = commentId;
+    elements.deleteModal?.classList.remove('hidden');
+}
+
+function closeDeleteModal() {
+    state.deleteTargetId = null;
+    elements.deleteModal?.classList.add('hidden');
+}
+
+async function confirmDeleteComment() {
+    if (!state.deleteTargetId) return;
+    if (!ensureAuthenticated({ message: '请先登录以删除评论' })) {
+        closeDeleteModal();
+        return;
+    }
+
+    const button = elements.deleteConfirm;
+    button?.setAttribute('disabled', 'true');
+    try {
+        await deleteComment(state.deleteTargetId);
         await refreshComments();
         showToast('评论已删除', { type: 'info' });
+        closeDeleteModal();
     } catch (error) {
         handleApiError(error, '删除失败，请稍后再试');
+    } finally {
+        button?.removeAttribute('disabled');
     }
 }
 
