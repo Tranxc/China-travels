@@ -21,8 +21,6 @@ async function fetchScenes(env, filter = {}) {
 			s.summary,
 			s.cover_url,
 			s.province,
-			s.created_at,
-			s.updated_at,
 			COALESCE(fav.count, 0) AS favorites_count,
 			COALESCE(v.likes, 0) AS likes_count,
 			COALESCE(v.dislikes, 0) AS dislikes_count
@@ -40,7 +38,7 @@ async function fetchScenes(env, filter = {}) {
 			GROUP BY scene_slug
 		) AS v ON v.scene_slug = s.slug
 		${whereClause}
-		ORDER BY s.created_at DESC
+		ORDER BY s.name ASC
 	`;
 
     const { results } = await env.china_travel_db.prepare(query).bind(...params).all();

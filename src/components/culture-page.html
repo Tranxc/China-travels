@@ -167,7 +167,6 @@
 
     // 加载认证模态框并初始化
     (async () => {
-      // 先加载认证模态框
       await loadComponent('[include-html]');
 
       const scenes = document.querySelectorAll('.scene');
@@ -214,7 +213,7 @@
       // 等待认证模态框加载完成后，再初始化认证模块
       import('/src/modules/auth.js').then(module => {
         module.initAuthUI();
-        module.updateAuthUI(); // 如果用户已登录，更新UI
+        module.updateAuthUI(); 
       });
     })();
   </script>

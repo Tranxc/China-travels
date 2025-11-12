@@ -15,8 +15,14 @@ export async function getSceneByIdentifier(db, identifiers = {}) {
     for (const candidate of idCandidates) {
         const numericId = Number(candidate);
         if (!Number.isNaN(numericId) && numericId > 0) {
-            const record = await db.prepare('SELECT * FROM scenes WHERE id = ?').bind(numericId).first();
-            if (record) return record;
+            try {
+                const record = await db.prepare('SELECT * FROM scenes WHERE id = ?').bind(numericId).first();
+                if (record) return record;
+            } catch (error) {
+                if (!String(error?.message || '').includes('no such column')) {
+                    throw error;
+                }
+            }
         }
     }
 
@@ -53,7 +59,8 @@ export function mapCommentRecord(record) {
     if (!record) return null;
     return {
         id: record.id,
-        sceneId: record.scene_id,
+        sceneId: record.scene_id ?? null,
+        sceneSlug: record.scene_slug ?? null,
         parentId: record.parent_id,
         content: record.content,
         status: record.status,

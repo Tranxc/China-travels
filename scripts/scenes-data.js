@@ -11,7 +11,7 @@ export const SCENES = [
     slug: '长城',
     name: '长城',
     summary: '蜿蜒数千里的古代防御工程，纵横于华北群山之巅。',
-    cover_url: 'assets/spots/Beijing_Chancheng.avif',
+    cover_url: 'assets/spots/Beijing_Changcheng.avif',
     province: '北京市',
   },
   {

@@ -15,7 +15,6 @@
     }
   </style>
 
-  <!-- 防止用户名闪烁: 在页面渲染前直接处理 -->
   <script>
     (function () {
       try {
@@ -26,7 +25,7 @@
             const switchBtn = document.querySelector('#switch-account-btn');
             if (switchBtn && user) {
               switchBtn.textContent = user.nickname || user.email.split('@')[0];
-              switchBtn.style.color = '#ffd36b'; // 确保颜色正确
+              switchBtn.style.color = '#ffd36b'; 
             }
           });
         }
@@ -54,7 +53,6 @@
       </div>
     </div>
     <div class="topbar-right">
-      <!-- <img src="assets/avatar.png" class="avatar" alt="用户头像"> -->
       <div class="user-menu">
         <button id="favorites-btn">我的收藏</button>
         <button id="switch-account-btn">切换账号</button>

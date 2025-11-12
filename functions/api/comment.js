@@ -42,9 +42,9 @@ async function handleGet(request, env) {
 		SELECT c.*, u.nickname, u.email
 		FROM comments c
 		LEFT JOIN users u ON c.user_id = u.id
-		WHERE c.scene_id = ? AND c.status != 'deleted'
+		WHERE c.scene_slug = ? AND c.status != 'deleted'
 		ORDER BY c.created_at ASC
-	`).bind(scene.id).all();
+	`).bind(scene.slug).all();
 
     const auth = optionalAuth(request);
     let likedMap = new Map();
@@ -85,8 +85,8 @@ async function handleCreate(request, env, user) {
 
     let parentId = payload.parentId || payload.parent_id;
     if (parentId) {
-        const parent = await env.china_travel_db.prepare('SELECT id, scene_id FROM comments WHERE id = ?').bind(parentId).first();
-        if (!parent || parent.scene_id !== scene.id) {
+        const parent = await env.china_travel_db.prepare('SELECT id, scene_slug FROM comments WHERE id = ?').bind(parentId).first();
+        if (!parent || parent.scene_slug !== scene.slug) {
             throw new HttpError(400, '父评论不存在或不属于该景点');
         }
     } else {
@@ -94,9 +94,9 @@ async function handleCreate(request, env, user) {
     }
 
     const insert = await env.china_travel_db.prepare(`
-		INSERT INTO comments (user_id, scene_id, parent_id, content)
+		INSERT INTO comments (user_id, scene_slug, parent_id, content)
 		VALUES (?, ?, ?, ?)
-	`).bind(user.id, scene.id, parentId, content).run();
+	`).bind(user.id, scene.slug, parentId, content).run();
 
     if (!insert.success) throw new HttpError(500, insert.error || '发表评论失败');
 
