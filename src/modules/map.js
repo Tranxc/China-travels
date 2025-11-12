@@ -71,6 +71,7 @@ export class MapManager {
     this.scenesByProvince = new Map(STATIC_SCENES_BY_PROVINCE);
     this.sceneLookup = new Map(STATIC_SCENE_LOOKUP);
     this.extendSceneKeywords(STATIC_SCENE_KEYWORDS);
+    this._carouselTimer = null;
   }
 
   /** 初始化地图 */
@@ -379,6 +380,7 @@ export class MapManager {
     }));
     const track = document.getElementById('carousel-track');
     const caption = document.getElementById('carousel-caption');
+    this.clearCarouselAutoPlay();
 
     if (spots.length === 0) {
       track.innerHTML = '<div class="carousel-item"><p>暂无景点数据</p></div>';
@@ -415,18 +417,19 @@ export class MapManager {
       updateCarousel();
     };
 
-    let autoPlayInterval = setInterval(() => {
-      currentIndex = (currentIndex + 1) % spots.length;
-      updateCarousel();
-    }, 4000); // 每 4 秒自动切换
+    const restartAutoPlay = () => {
+      this.clearCarouselAutoPlay();
+      if (spots.length <= 1) return;
+      this._carouselTimer = setInterval(() => {
+        currentIndex = (currentIndex + 1) % spots.length;
+        updateCarousel();
+      }, 4000);
+    };
+    restartAutoPlay();
 
     [prevBtn, nextBtn].forEach(btn => {
       btn.addEventListener('click', () => {
-        clearInterval(autoPlayInterval);
-        autoPlayInterval = setInterval(() => {
-          currentIndex = (currentIndex + 1) % spots.length;
-          updateCarousel();
-        }, 4000);
+        restartAutoPlay();
       });
     });
 
@@ -434,13 +437,12 @@ export class MapManager {
     const closeBtn = document.getElementById('close-detail-btn');
     if (closeBtn) {
       closeBtn.onclick = () => {
-        clearInterval(autoPlayInterval);
+        this.clearCarouselAutoPlay();
         const panel = document.getElementById('detail-panel');
         panel.classList.remove('show');
         panel.classList.add('hidden');
       };
     }
-
     // ===== 收藏按钮 =====
     const favBtn = document.getElementById('favorite-spot-btn');
 
@@ -622,6 +624,13 @@ export class MapManager {
     panel.classList.remove('hidden');
     panel.classList.add('show');
 
+  }
+
+  clearCarouselAutoPlay() {
+    if (this._carouselTimer) {
+      clearInterval(this._carouselTimer);
+      this._carouselTimer = null;
+    }
   }
 
   bindDetailPanelEvents() {
