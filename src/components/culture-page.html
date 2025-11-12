@@ -227,11 +227,15 @@
         }
       }
 
+      let scrollRaf = null;
       sceneContainer?.addEventListener('scroll', () => {
-        if (!isAnimating) {
+        if (isAnimating) return;
+        if (scrollRaf) return;
+        scrollRaf = requestAnimationFrame(() => {
+          scrollRaf = null;
           syncIndexFromScroll();
-        }
-      });
+        });
+      }, { passive: true });
 
       // 键盘控制
       addEventListener('keydown', (e) => {

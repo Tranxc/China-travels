@@ -413,10 +413,15 @@ export class MapManager {
 
     // 填充图片项
     track.innerHTML = spots.map(s => `
-  <div class="carousel-item" data-name="${s.name}" data-slug="${s.slug || ''}">
-    <img src="${s.img}" alt="${s.name}">
-  </div>
-`).join('');
+      <div class="carousel-item" data-name="${s.name}" data-slug="${s.slug || ''}">
+        <img src="${s.img}" alt="${s.name}">
+      </div>
+    `).join('');
+    const prevTransition = track.style.transition;
+    track.style.transition = 'none';
+    track.style.transform = 'translateX(0)';
+    void track.offsetWidth;
+    track.style.transition = prevTransition;
 
     let currentIndex = 0;
     caption.textContent = spots[currentIndex].name;

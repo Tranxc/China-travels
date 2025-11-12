@@ -95,6 +95,8 @@ body {
   contain: paint;
   transform: translateZ(0);
   backface-visibility: hidden;
+  content-visibility: auto;
+  contain-intrinsic-size: calc(100dvh - 64px);
 }
 
 .scene::after {
@@ -182,6 +184,10 @@ footer {
 }
 
 @media (max-width: 768px) {
+  .scenes {
+    scroll-snap-type: y proximity;
+  }
+
   html,
   body {
     height: auto;
