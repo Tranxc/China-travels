@@ -173,6 +173,7 @@
       const scenes = sceneContainer ? sceneContainer.querySelectorAll('.scene') : [];
       let currentIndex = 0;
       let isAnimating = false;
+      const preloadedBackgrounds = new Set();
 
       const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
 
@@ -197,6 +198,35 @@
         currentIndex = clamp(approxIndex, 0, scenes.length - 1);
       }
 
+      function extractBgUrl(element) {
+        if (!element) return '';
+        const styles = getComputedStyle(element);
+        const raw = styles.getPropertyValue('--bg') || element.style.getPropertyValue('--bg') || '';
+        const match = raw.match(/url\(["']?(.*?)["']?\)/);
+        return match ? match[1] : '';
+      }
+
+      function preloadSceneBackgrounds(list) {
+        if (!list?.length) return;
+        const load = () => {
+          list.forEach((scene, index) => {
+            const url = extractBgUrl(scene);
+            if (!url || preloadedBackgrounds.has(url)) return;
+            setTimeout(() => {
+              const img = new Image();
+              img.decoding = 'async';
+              img.src = url;
+              preloadedBackgrounds.add(url);
+            }, index * 120);
+          });
+        };
+        if ('requestIdleCallback' in window) {
+          requestIdleCallback(load);
+        } else {
+          setTimeout(load, 0);
+        }
+      }
+
       sceneContainer?.addEventListener('scroll', () => {
         if (!isAnimating) {
           syncIndexFromScroll();
@@ -214,6 +244,8 @@
           scrollToScene(currentIndex - 1);
         }
       });
+
+      preloadSceneBackgrounds(scenes);
 
       // 异步加载字体
       document.addEventListener('DOMContentLoaded', () => {

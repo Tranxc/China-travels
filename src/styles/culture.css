@@ -87,9 +87,14 @@ body {
   place-items: center;
   padding: clamp(16px, 4vw, 48px);
   background:
-    var(--bg, radial-gradient(1200px 800px at 50% 50%, #2a2a2a, #0f0f0f)) no-repeat center / cover fixed;
+    var(--bg, radial-gradient(1200px 800px at 50% 50%, #2a2a2a, #0f0f0f)) no-repeat center / cover;
+  background-attachment: scroll;
   scroll-snap-align: start;
   scroll-snap-stop: always;
+  will-change: transform;
+  contain: paint;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 .scene::after {
@@ -158,6 +163,12 @@ footer {
   opacity: .9;
   padding: 28px 0 36px;
   background: rgba(20, 20, 20, .32);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .scene {
+    background-attachment: fixed;
+  }
 }
 
 @media (max-width: 1024px) {
