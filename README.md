@@ -7,6 +7,13 @@
   </a>
 </p>
 
+<p align="center">
+  <a href="https://github.com/Tranxc/China-travels" target="_blank">
+    项目地址（GitHub）：https://github.com/Tranxc/China-travels
+  </a>
+  
+</p>
+
 ---
 
 ## 1. 信息 🌐
