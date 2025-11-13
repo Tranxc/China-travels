@@ -28,6 +28,17 @@
     border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
+@media (hover: none) and (pointer: coarse) {
+    button,
+    .btn,
+    [class*="btn"],
+    [role="button"] {
+        -webkit-tap-highlight-color: transparent;
+        outline: none;
+        box-shadow: none;
+    }
+}
+
 /* 头部 */
 .auth-header {
     display: flex;

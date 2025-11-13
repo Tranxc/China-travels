@@ -6,8 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>山河行吟 · 诗意山河</title>
 
-  <link rel="stylesheet" href="/src/styles/culture.css" />
   <link rel="stylesheet" href="/src/styles/auth.css" />
+  <link rel="stylesheet" href="/src/styles/culture.css" />
 
   <style>
     html {
@@ -15,13 +15,11 @@
     }
   </style>
 
-  <!-- 防止用户名闪烁: 在页面渲染前直接处理 -->
   <script>
     (function () {
       try {
         const user = JSON.parse(localStorage.getItem('user') || 'null');
         if (user) {
-          // 添加 style 标签隐藏登录按钮
           const style = document.createElement('style');
           style.textContent = '.btn-open-auth { display: none !important; }';
           document.head.appendChild(style);
@@ -33,7 +31,8 @@
   </script>
 </head>
 
-<body>
+<body id="page-body">
+
   <header class="navbar">
     <div class="logo">诗意山河</div>
     <nav>
@@ -43,16 +42,15 @@
     </nav>
   </header>
 
-  
-  <main class="scenes">
+  <main class="scenes" id="scene-container">
 
-  <section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/gugong.avif')">
-  <div class="overlay">
-    <h1>故宫</h1>
-    <h3 class="place">北京</h3>
-    <p class="poem">金瓦丹墙藏千载，龙椅静候旧王朝</p>
-  </div>
-</section>
+    <section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/gugong.avif')">
+      <div class="overlay">
+        <h1>故宫</h1>
+        <h3 class="place">北京</h3>
+        <p class="poem">金瓦丹墙藏千载，龙椅静候旧王朝</p>
+      </div>
+    </section>
 
     <section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/desert.avif')">
       <div class="overlay">
@@ -90,70 +88,73 @@
       <div class="overlay">
         <h1>云贵梯田</h1>
         <h3 class="place">云南·元阳</h3>
-        <p class="poem">千层叠翠起云烟，万壑流金绕人间</p>
+        <p class="poem">千层叠翠起云烟，万壑流金绕人家</p>
       </div>
-
     </section>
+
     <section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/sichuan.avif')">
       <div class="overlay">
         <h1>九寨沟</h1>
         <h3 class="place">四川·阿坝</h3>
-        <p class="poem">江作青罗带，山如碧玉簪</p>
+        <p class="poem">五彩池水映天光，飞瀑流泉落人间</p>
       </div>
     </section>
+
     <section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/zhangjiajie.avif')">
       <div class="overlay">
         <h1>张家界峰林</h1>
         <h3 class="place">湖南·张家界</h3>
-        <p class="poem">千峰林立接云霄，奇石幽谷映碧涛</p>
+        <p class="poem">千峰林立接云霄，奇石幽谷映碧空</p>
       </div>
     </section>
+
     <section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/lasa.avif')">
       <div class="overlay">
         <h1>布达拉宫</h1>
         <h3 class="place">西藏·拉萨</h3>
-        <p class="poem">风拂雪岭天为帐，云走高原地作琴</p>
+        <p class="poem">风拂雪岭天为帐，云走高原地作毯</p>
       </div>
     </section>
-   <section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/sanya.avif')">
-  <div class="overlay">
-    <h1>天涯海角</h1>
-    <h3 class="place">海南·三亚</h3>
-    <p class="poem">海角天涯情不老，碧波银浪逐云霞</p>
-  </div>
-</section>
-<section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/mogaoku.avif')">
-  <div class="overlay">
-    <h1>敦煌莫高窟</h1>
-    <h3 class="place">甘肃·敦煌</h3>
-    <p class="poem">壁画千年佛国梦，丝路万里古今情</p>
-  </div>
-</section>
-<section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/qinghaihu.avif')">
-  <div class="overlay">
-    <h1>青海湖</h1>
-    <h3 class="place">青海·海南藏族自治州</h3>
-    <p class="poem">湖天一色连天远，碧浪无垠映雪峰</p>
-  </div>
-</section>
-<section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/yuxue.avif')">
-  <div class="overlay">
-    <h1>玉龙雪山</h1>
-    <h3 class="place">云南·丽江</h3>
-    <p class="poem">银装素裹云天近，雪岭冰河照古城</p>
-  </div>
-</section>
 
+    <section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/sanya.avif')">
+      <div class="overlay">
+        <h1>天涯海角</h1>
+        <h3 class="place">海南·三亚</h3>
+        <p class="poem">海角天涯情不老，碧波银浪逐云霞</p>
+      </div>
+    </section>
+
+    <section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/mogaoku.avif')">
+      <div class="overlay">
+        <h1>敦煌莫高窟</h1>
+        <h3 class="place">甘肃·敦煌</h3>
+        <p class="poem">壁画千年佛国梦，丝路万里古今传</p>
+      </div>
+    </section>
+
+    <section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/qinghaihu.avif')">
+      <div class="overlay">
+        <h1>青海湖</h1>
+        <h3 class="place">青海·海南藏族自治州</h3>
+        <p class="poem">湖天一色连天远，碧浪无垠映雪峰</p>
+      </div>
+    </section>
+
+    <section class="scene" style="--bg:url('https://assets.235800.xyz/assets/images/yuxue.avif')">
+      <div class="overlay">
+        <h1>玉龙雪山</h1>
+        <h3 class="place">云南·丽江</h3>
+        <p class="poem">银装素裹云天近，雪岭冰河照古城</p>
+      </div>
+    </section>
 
   </main>
 
-  <!-- 认证模态框 -->
   <div include-html="/src/components/auth-modal.html"></div>
 
-  <footer>© 2025 诗意山河 | 山水有诗意</footer>
+  <footer class="page-footer">© 2025 诗意山河 | 山水有诗意</footer>
 
   <script type="module">
-    // 加载HTML组件
     async function loadComponent(selector) {
       const element = document.querySelector(selector);
       if (!element) return;
@@ -165,38 +166,118 @@
       }
     }
 
-    // 加载认证模态框并初始化
     (async () => {
       await loadComponent('[include-html]');
 
-      const sceneContainer = document.querySelector('.scenes');
-      const scenes = sceneContainer ? sceneContainer.querySelectorAll('.scene') : [];
+      document.addEventListener('DOMContentLoaded', () => {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap';
+        document.head.appendChild(link);
+      });
+
+      import('/src/modules/auth.js').then(module => {
+        module.initAuthUI();
+        module.updateAuthUI();
+      });
+
+      const sceneContainer = document.getElementById('scene-container');
+      const scenes = sceneContainer ? Array.from(sceneContainer.querySelectorAll('.scene')) : [];
+      const totalScenes = scenes.length;
+      if (totalScenes === 0) return;
+
       let currentIndex = 0;
       let isAnimating = false;
+      let touchStartY = null;
+      const swipeThreshold = 50;
+
       const preloadedBackgrounds = new Set();
 
-      const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+      function changeScene(newIndex) {
+        if (isAnimating || newIndex === currentIndex || newIndex < 0 || newIndex >= totalScenes) {
+          return;
+        }
 
-      function scrollToScene(index) {
-        if (!sceneContainer || !scenes.length) return;
-        const targetIndex = clamp(index, 0, scenes.length - 1);
-        if (targetIndex === currentIndex && !isAnimating) return;
         isAnimating = true;
-        currentIndex = targetIndex;
-        sceneContainer.scrollTo({
-          top: targetIndex * sceneContainer.clientHeight,
-          behavior: 'smooth',
-        });
-        setTimeout(() => {
+        const direction = newIndex > currentIndex ? 'down' : 'up';
+
+        const oldScene = scenes[currentIndex];
+        const newScene = scenes[newIndex];
+
+        newScene.classList.add(direction === 'down' ? 'is-entering-from-down' : 'is-entering-from-up');
+        newScene.offsetHeight;
+
+        oldScene.classList.remove('is-active');
+        oldScene.classList.add(direction === 'down' ? 'is-exiting-up' : 'is-exiting-down');
+
+        newScene.classList.add('is-active');
+        newScene.classList.remove('is-entering-from-down', 'is-entering-from-up');
+
+        newScene.addEventListener('transitionend', () => {
+          oldScene.classList.remove('is-exiting-up', 'is-exiting-down');
+          currentIndex = newIndex;
           isAnimating = false;
-        }, 600);
+        }, { once: true });
       }
 
-      function syncIndexFromScroll() {
-        if (!sceneContainer) return;
-        const approxIndex = Math.round(sceneContainer.scrollTop / sceneContainer.clientHeight);
-        currentIndex = clamp(approxIndex, 0, scenes.length - 1);
-      }
+      sceneContainer.addEventListener('wheel', (e) => {
+        e.preventDefault();
+        if (isAnimating) return;
+
+        if (e.deltaY > 0) {
+          changeScene(currentIndex + 1);
+        } else if (e.deltaY < 0) {
+          changeScene(currentIndex - 1);
+        }
+      }, { passive: false });
+
+      addEventListener('keydown', (e) => {
+        if (isAnimating) return;
+        if (e.key === 'ArrowDown' || e.key === 'PageDown') {
+          e.preventDefault();
+          changeScene(currentIndex + 1);
+        } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
+          e.preventDefault();
+          changeScene(currentIndex - 1);
+        }
+      });
+
+      const handleSwipeDelta = (deltaY) => {
+        if (Math.abs(deltaY) < swipeThreshold) return;
+        if (deltaY < 0) {
+          changeScene(currentIndex + 1);
+        } else {
+          changeScene(currentIndex - 1);
+        }
+      };
+
+      sceneContainer.addEventListener('touchstart', (e) => {
+        if (isAnimating) return;
+        touchStartY = e.touches[0]?.clientY ?? null;
+      }, { passive: true });
+
+      sceneContainer.addEventListener('touchmove', (e) => {
+        if (isAnimating || touchStartY === null) return;
+        const currentY = e.touches[0]?.clientY ?? touchStartY;
+        const deltaY = currentY - touchStartY;
+        if (Math.abs(deltaY) >= swipeThreshold) {
+          e.preventDefault();
+          touchStartY = null;
+          handleSwipeDelta(deltaY);
+        }
+      }, { passive: false });
+
+      sceneContainer.addEventListener('touchend', (e) => {
+        if (isAnimating || touchStartY === null) return;
+        const touchEndY = e.changedTouches[0].clientY;
+        const deltaY = touchEndY - touchStartY;
+        handleSwipeDelta(deltaY);
+        touchStartY = null;
+      }, { passive: true });
+
+      sceneContainer.addEventListener('touchcancel', () => {
+        touchStartY = null;
+      });
 
       function extractBgUrl(element) {
         if (!element) return '';
@@ -227,43 +308,12 @@
         }
       }
 
-      let scrollRaf = null;
-      sceneContainer?.addEventListener('scroll', () => {
-        if (isAnimating) return;
-        if (scrollRaf) return;
-        scrollRaf = requestAnimationFrame(() => {
-          scrollRaf = null;
-          syncIndexFromScroll();
-        });
-      }, { passive: true });
-
-      // 键盘控制
-      addEventListener('keydown', (e) => {
-        if (!sceneContainer || !scenes.length) return;
-        if (e.key === 'ArrowDown' || e.key === 'PageDown') {
-          e.preventDefault();
-          scrollToScene(currentIndex + 1);
-        } else if (e.key === 'ArrowUp' || e.key === 'PageUp') {
-          e.preventDefault();
-          scrollToScene(currentIndex - 1);
-        }
-      });
-
       preloadSceneBackgrounds(scenes);
 
-      // 异步加载字体
-      document.addEventListener('DOMContentLoaded', () => {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=Zhi+Mang+Xing&family=Ma+Shan+Zheng&family=Noto+Serif+SC:wght@400;700&display=swap';
-        document.head.appendChild(link);
-      });
+      if (scenes[0]) {
+        scenes[0].classList.add('is-active');
+      }
 
-      // 等待认证模态框加载完成后，再初始化认证模块
-      import('/src/modules/auth.js').then(module => {
-        module.initAuthUI();
-        module.updateAuthUI(); 
-      });
     })();
   </script>
 </body>

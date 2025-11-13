@@ -6,6 +6,17 @@
   transform: translateY(-50%);
 }
 
+@media (hover: none) and (pointer: coarse) {
+  button,
+  .btn,
+  [class*="btn"],
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    box-shadow: none;
+  }
+}
+
 .hero-content h1 {
   font-size: 3.5rem;
   font-weight: bold;

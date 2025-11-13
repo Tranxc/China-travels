@@ -379,292 +379,293 @@ export class MapManager {
     this.queueDetailDrawer(panel, drawerDelay);
 
     const titleEl = document.getElementById('detail-title');
-    if (titleEl) {
-      titleEl.textContent = focusScene?.name || item.name;
-    }
-
-    const normalizeScene = (scene) => {
-      if (!scene) return null;
-      const name = scene.name || scene.slug || item.name;
-      const slug = scene.slug || scene.name;
-      const img = scene.img || resolveAssetUrl(scene.cover_url || scene.coverUrl || '');
-      if (!name && !img) return null;
-      return {
-        ...scene,
-        name,
-        slug,
-        img,
-      };
-    };
-
-    const sourceScenes = focusScene ? [focusScene] : this.getScenesForProvince(item.name);
-    const spots = (Array.isArray(sourceScenes) ? sourceScenes : [])
-      .map(normalizeScene)
-      .filter(Boolean);
     const track = document.getElementById('carousel-track');
     const caption = document.getElementById('carousel-caption');
+
+    if (titleEl) {
+      titleEl.textContent = '加载中...';
+    }
+    if (track) {
+      track.innerHTML = '';
+    }
+    if (caption) {
+      caption.textContent = '';
+    }
     this.clearCarouselAutoPlay();
 
-    if (spots.length === 0) {
-      track.innerHTML = '<div class="carousel-item"><p>暂无景点数据</p></div>';
-      caption.textContent = '';
-      return;
+    if (this._detailContentTimer) {
+      clearTimeout(this._detailContentTimer);
+      this._detailContentTimer = null;
     }
 
-    // 填充图片项
-    track.innerHTML = spots.map(s => `
-      <div class="carousel-item" data-name="${s.name}" data-slug="${s.slug || ''}">
-        <img src="${s.img}" alt="${s.name}">
-      </div>
-    `).join('');
-    const prevTransition = track.style.transition;
-    track.style.transition = 'none';
-    track.style.transform = 'translateX(0)';
-    void track.offsetWidth;
-    track.style.transition = prevTransition;
+    const contentInitDelay = Math.max(drawerDelay + 550, 750);
+    this._detailContentTimer = setTimeout(async () => {
+      this._detailContentTimer = null;
 
-    let currentIndex = 0;
-    caption.textContent = spots[currentIndex].name;
-
-    // 绑定切换按钮
-    const prevBtn = document.getElementById('carousel-prev');
-    const nextBtn = document.getElementById('carousel-next');
-
-    function updateCarousel() {
-      track.style.transform = `translateX(-${currentIndex * 100}%)`;
-      caption.textContent = spots[currentIndex].name;
-    }
-
-    // 左右切换
-    prevBtn.onclick = () => {
-      currentIndex = (currentIndex - 1 + spots.length) % spots.length;
-      updateCarousel();
-    };
-    nextBtn.onclick = () => {
-      currentIndex = (currentIndex + 1) % spots.length;
-      updateCarousel();
-    };
-
-    const restartAutoPlay = () => {
-      this.clearCarouselAutoPlay();
-      if (spots.length <= 1) return;
-      this._carouselTimer = setInterval(() => {
-        currentIndex = (currentIndex + 1) % spots.length;
-        updateCarousel();
-      }, 4000);
-    };
-    restartAutoPlay();
-
-    [prevBtn, nextBtn].forEach(btn => {
-      btn.addEventListener('click', () => {
-        restartAutoPlay();
-      });
-    });
-
-    // 当详情页关闭时清理定时器
-    const closeBtn = document.getElementById('close-detail-btn');
-    if (closeBtn) {
-      closeBtn.onclick = () => {
-        this.cancelDetailDrawerTimer();
-        this.clearCarouselAutoPlay();
-        const panel = document.getElementById('detail-panel');
-        panel.classList.remove('show');
-        panel.classList.add('hidden');
+      const normalizeScene = (scene) => {
+        if (!scene) return null;
+        const name = scene.name || scene.slug || item.name;
+        const slug = scene.slug || scene.name;
+        const img = scene.img || resolveAssetUrl(scene.cover_url || scene.coverUrl || '');
+        if (!name && !img) return null;
+        return {
+          ...scene,
+          name,
+          slug,
+          img,
+        };
       };
-    }
-    // ===== 收藏按钮 =====
-    const favBtn = document.getElementById('favorite-spot-btn');
 
-    // 用于根据 currentIndex 同步按钮文案
-    const syncFavBtn = () => {
-      if (!favBtn) return;
-      const currentSpot = spots[currentIndex];
-      const identifier = currentSpot?.slug || currentSpot?.name;
-      if (!identifier) {
-        favBtn.style.display = 'none';
+      const sourceScenes = focusScene ? [focusScene] : this.getScenesForProvince(item.name);
+      const spots = (Array.isArray(sourceScenes) ? sourceScenes : [])
+        .map(normalizeScene)
+        .filter(Boolean);
+
+      if (!track || !caption) {
         return;
       }
-      favBtn.style.display = 'inline-block';
-      const isFav = this.favoriteSpots.has(identifier);
-      favBtn.textContent = isFav ? '取消收藏' : '收藏景点';
-      favBtn.dataset.favorite = isFav ? 'true' : 'false';
-    };
 
-    // 点击切换收藏状态
-    if (favBtn) {
-      favBtn.onclick = async () => {
-        const currentSpot = spots[currentIndex];
-        const identifier = currentSpot?.slug || currentSpot?.name;
-        const label = currentSpot?.name || identifier;
-        if (!identifier) return;
-        if (!ensureAuthenticated({ message: '请先登录以收藏景点' })) return;
-        const wasFavorite = this.favoriteSpots.has(identifier);
-        try {
-          const nowFavorite = await this.toggleFavoriteSpot(identifier);
-          favBtn.textContent = nowFavorite ? '取消收藏' : '收藏景点';
-          showToast(nowFavorite ? `已收藏「${label}」` : `已取消收藏「${label}」`, {
-            type: nowFavorite ? 'success' : 'info'
-          });
-        } catch (error) {
-          this.handleRequestError(error, wasFavorite ? '取消收藏失败，请稍后重试' : '收藏失败，请稍后重试');
-        }
-        syncFavBtn();
-      };
-    }
-
-    // 初始化 & 每次切换都刷新收藏文案
-    syncFavBtn();
-    prevBtn.addEventListener('click', syncFavBtn);
-    nextBtn.addEventListener('click', syncFavBtn);
-
-    // ====== 点赞/点踩逻辑（同步服务器统计） ======
-    const likeBtn = document.getElementById('like-btn');
-    const dislikeBtn = document.getElementById('dislike-btn');
-    const likeCountEl = document.getElementById('like-count');
-    const dislikeCountEl = document.getElementById('dislike-count');
-
-    likeBtn.replaceWith(likeBtn);
-    dislikeBtn.replaceWith(dislikeBtn);
-
-    const newLikeBtn = document.getElementById('like-btn');
-    const newDislikeBtn = document.getElementById('dislike-btn');
-
-    const updateVoteUI = (state) => {
-      likeCountEl.textContent = state.likes ?? 0;
-      dislikeCountEl.textContent = state.dislikes ?? 0;
-      newLikeBtn.classList.toggle('active', state.vote === 'like');
-      newDislikeBtn.classList.toggle('active', state.vote === 'dislike');
-    };
-
-    const bindVoteButtons = async (spot) => {
-      const identifier = spot?.slug || spot?.name;
-      const label = spot?.name || identifier;
-      if (!identifier) return;
-
-      let data = this.votes.get(identifier);
-
-      if (!data || !data.synced) {
-        try {
-          const scene = await fetchScene(this.getSceneIdentifier(identifier));
-          if (scene) {
-            data = {
-              vote: data?.vote ?? null,
-              likes: scene.likes_count ?? 0,
-              dislikes: scene.dislikes_count ?? 0,
-              synced: true,
-            };
-          }
-        } catch (error) {
-          this.handleRequestError(error, null, { suppressAlert: true });
-        }
-
-        if (!data) {
-          data = { vote: null, likes: 0, dislikes: 0, synced: false };
-        }
-
-        this.votes.set(identifier, data);
+      if (titleEl) {
+        const panelTitle = focusScene?.province || item?.name || '省市详情';
+        titleEl.textContent = panelTitle;
       }
 
-      updateVoteUI(data);
+      if (spots.length === 0) {
+        track.innerHTML = '<div class="carousel-item"><p>暂无景点数据</p></div>';
+        caption.textContent = '';
+        return;
+      }
 
-      const sendVote = async (action) => {
-        if (!ensureAuthenticated({ message: '请先登录以评价景点' })) return;
+      track.innerHTML = spots.map(s => `
+        <div class="carousel-item" data-name="${s.name}" data-slug="${s.slug || ''}">
+          <img src="${s.img}" alt="${s.name}">
+        </div>
+      `).join('');
+      const prevTransition = track.style.transition;
+      track.style.transition = 'none';
+      track.style.transform = 'translateX(0)';
+      void track.offsetWidth;
+      track.style.transition = prevTransition;
 
-        const previousVote = data.vote;
-        try {
-          const payload = await submitSceneVote(this.getSceneIdentifier(identifier), action);
-          const scene = payload?.scene;
-          const currentVote = payload?.currentVote || null;
-          data = {
-            vote: currentVote,
-            likes: scene?.likes_count ?? data.likes,
-            dislikes: scene?.dislikes_count ?? data.dislikes,
-            synced: true,
-          };
-          this.votes.set(identifier, data);
-          updateVoteUI(data);
+      let currentIndex = 0;
+      caption.textContent = spots[currentIndex].name;
 
-          if (previousVote !== currentVote) {
-            let toastMessage = '';
-            let toastType = 'success';
-            if (currentVote === 'like') {
-              toastMessage = `已为「${label}」点了赞`;
-              toastType = 'success';
-            } else if (currentVote === 'dislike') {
-              toastMessage = `已为「${label}」点了不喜欢`;
-              toastType = 'warning';
-            } else {
-              toastMessage = `已撤销对「${label}」的评价`;
-              toastType = 'info';
-            }
-            showToast(toastMessage, { type: toastType });
-          }
+      const prevBtn = document.getElementById('carousel-prev');
+      const nextBtn = document.getElementById('carousel-next');
 
-          if (currentVote === 'like' && previousVote !== 'like') {
-            this.showFloatingFeedback(newLikeBtn, '+1', '#c59b34 ');
-          } else if (previousVote === 'like' && currentVote !== 'like') {
-            this.showFloatingFeedback(newLikeBtn, '-1', '#999');
-          }
-
-          if (currentVote === 'dislike' && previousVote !== 'dislike') {
-            this.showFloatingFeedback(newDislikeBtn, '+1', '#d96b6b');
-          } else if (previousVote === 'dislike' && currentVote !== 'dislike') {
-            this.showFloatingFeedback(newDislikeBtn, '-1', '#999');
-          }
-        } catch (error) {
-          this.handleRequestError(error, '提交评价失败，请稍后重试');
-        }
+      const updateCarousel = () => {
+        track.style.transform = `translateX(-${currentIndex * 100}%)`;
+        caption.textContent = spots[currentIndex].name;
       };
 
-      newLikeBtn.onclick = async () => {
-        const current = this.votes.get(identifier) || data;
-        const action = current.vote === 'like' ? 'clear' : 'like';
-        await sendVote(action);
+      prevBtn.onclick = () => {
+        currentIndex = (currentIndex - 1 + spots.length) % spots.length;
+        updateCarousel();
+      };
+      nextBtn.onclick = () => {
+        currentIndex = (currentIndex + 1) % spots.length;
+        updateCarousel();
       };
 
-      newDislikeBtn.onclick = async () => {
-        const current = this.votes.get(identifier) || data;
-        const action = current.vote === 'dislike' ? 'clear' : 'dislike';
-        await sendVote(action);
+      const restartAutoPlay = () => {
+        this.clearCarouselAutoPlay();
+        if (spots.length <= 1) return;
+        this._carouselTimer = setInterval(() => {
+          currentIndex = (currentIndex + 1) % spots.length;
+          updateCarousel();
+        }, 4000);
       };
-    };
+      restartAutoPlay();
 
-    let currentSpot = spots[currentIndex] || { name: item.name };
-    await bindVoteButtons(currentSpot);
-
-    [prevBtn, nextBtn].forEach(btn => {
-      btn.addEventListener('click', () => {
-        currentSpot = spots[currentIndex] || { name: item.name };
-        bindVoteButtons(currentSpot);
+      [prevBtn, nextBtn].forEach(btn => {
+        btn.addEventListener('click', () => {
+          restartAutoPlay();
+        });
       });
-    });
 
+      // 当详情页关闭时清理定时器
+      const closeBtn = document.getElementById('close-detail-btn');
+      if (closeBtn) {
+        closeBtn.onclick = () => {
+          this.cancelDetailDrawerTimer();
+          this.clearCarouselAutoPlay();
+          const currentPanel = document.getElementById('detail-panel');
+          currentPanel.classList.remove('show');
+          currentPanel.classList.add('hidden');
+        };
+      }
 
-    // 点击图片跳转到景点详情页
-    track.querySelectorAll('.carousel-item').forEach((el, i) => {
-      el.onclick = () => {
-        const spot = spots[i];
-        const identifier = spot?.slug || spot?.name;
-        if (!identifier) return;
-        window.location.href = `../../pages/scenic.html?spot=${encodeURIComponent(identifier)}`;
+      const favBtn = document.getElementById('favorite-spot-btn');
+
+      const syncFavBtn = () => {
+        if (!favBtn) return;
+        const currentSpot = spots[currentIndex];
+        const identifier = currentSpot?.slug || currentSpot?.name;
+        if (!identifier) {
+          favBtn.style.display = 'none';
+          return;
+        }
+        favBtn.style.display = 'inline-block';
+        const isFav = this.favoriteSpots.has(identifier);
+        favBtn.textContent = isFav ? '取消收藏' : '收藏景点';
+        favBtn.dataset.favorite = isFav ? 'true' : 'false';
       };
-    });
 
-    const openDrawer = () => {
-      this._detailDrawerTimer = null;
-      this.openDetailDrawer(panel);
-    };
+      if (favBtn) {
+        favBtn.onclick = async () => {
+          const currentSpot = spots[currentIndex];
+          const identifier = currentSpot?.slug || currentSpot?.name;
+          const label = currentSpot?.name || identifier;
+          if (!identifier) return;
+          if (!ensureAuthenticated({ message: '请先登录以收藏景点' })) return;
+          const wasFavorite = this.favoriteSpots.has(identifier);
+          try {
+            const nowFavorite = await this.toggleFavoriteSpot(identifier);
+            favBtn.textContent = nowFavorite ? '取消收藏' : '收藏景点';
+            showToast(nowFavorite ? `已收藏「${label}」` : `已取消收藏「${label}」`, {
+              type: nowFavorite ? 'success' : 'info'
+            });
+          } catch (error) {
+            this.handleRequestError(error, wasFavorite ? '取消收藏失败，请稍后重试' : '收藏失败，请稍后重试');
+          }
+          syncFavBtn();
+        };
+      }
 
-    if (this._detailDrawerTimer) {
-      clearTimeout(this._detailDrawerTimer);
-      this._detailDrawerTimer = null;
-    }
+      syncFavBtn();
+      prevBtn.addEventListener('click', syncFavBtn);
+      nextBtn.addEventListener('click', syncFavBtn);
 
-    if (shouldDelayDrawer) {
-      this._detailDrawerTimer = setTimeout(openDrawer, 250);
-    } else {
-      openDrawer();
-    }
+      const likeBtn = document.getElementById('like-btn');
+      const dislikeBtn = document.getElementById('dislike-btn');
+      const likeCountEl = document.getElementById('like-count');
+      const dislikeCountEl = document.getElementById('dislike-count');
+
+      likeBtn.replaceWith(likeBtn);
+      dislikeBtn.replaceWith(dislikeBtn);
+
+      const newLikeBtn = document.getElementById('like-btn');
+      const newDislikeBtn = document.getElementById('dislike-btn');
+
+      const updateVoteUI = (state) => {
+        likeCountEl.textContent = state.likes ?? 0;
+        dislikeCountEl.textContent = state.dislikes ?? 0;
+        newLikeBtn.classList.toggle('active', state.vote === 'like');
+        newDislikeBtn.classList.toggle('active', state.vote === 'dislike');
+      };
+
+      const bindVoteButtons = async (spot) => {
+        const identifier = spot?.slug || spot?.name;
+        const label = spot?.name || identifier;
+        if (!identifier) return;
+
+        let data = this.votes.get(identifier);
+
+        if (!data || !data.synced) {
+          try {
+            const scene = await fetchScene(this.getSceneIdentifier(identifier));
+            if (scene) {
+              data = {
+                vote: data?.vote ?? null,
+                likes: scene.likes_count ?? 0,
+                dislikes: scene.dislikes_count ?? 0,
+                synced: true,
+              };
+            }
+          } catch (error) {
+            this.handleRequestError(error, null, { suppressAlert: true });
+          }
+
+          if (!data) {
+            data = { vote: null, likes: 0, dislikes: 0, synced: false };
+          }
+
+          this.votes.set(identifier, data);
+        }
+
+        updateVoteUI(data);
+
+        const sendVote = async (action) => {
+          if (!ensureAuthenticated({ message: '请先登录以评价景点' })) return;
+
+          const previousVote = data.vote;
+          try {
+            const payload = await submitSceneVote(this.getSceneIdentifier(identifier), action);
+            const scene = payload?.scene;
+            const currentVote = payload?.currentVote || null;
+            data = {
+              vote: currentVote,
+              likes: scene?.likes_count ?? data.likes,
+              dislikes: scene?.dislikes_count ?? data.dislikes,
+              synced: true,
+            };
+            this.votes.set(identifier, data);
+            updateVoteUI(data);
+
+            if (previousVote !== currentVote) {
+              let toastMessage = '';
+              let toastType = 'success';
+              if (currentVote === 'like') {
+                toastMessage = `已为「${label}」点了赞`;
+                toastType = 'success';
+              } else if (currentVote === 'dislike') {
+                toastMessage = `已为「${label}」点了不喜欢`;
+                toastType = 'warning';
+              } else {
+                toastMessage = `已撤销对「${label}」的评价`;
+                toastType = 'info';
+              }
+              showToast(toastMessage, { type: toastType });
+            }
+
+            if (currentVote === 'like' && previousVote !== 'like') {
+              this.showFloatingFeedback(newLikeBtn, '+1', '#c59b34 ');
+            } else if (previousVote === 'like' && currentVote !== 'like') {
+              this.showFloatingFeedback(newLikeBtn, '-1', '#999');
+            }
+
+            if (currentVote === 'dislike' && previousVote !== 'dislike') {
+              this.showFloatingFeedback(newDislikeBtn, '+1', '#d96b6b');
+            } else if (previousVote === 'dislike' && currentVote !== 'dislike') {
+              this.showFloatingFeedback(newDislikeBtn, '-1', '#999');
+            }
+          } catch (error) {
+            this.handleRequestError(error, '提交评价失败，请稍后重试');
+          }
+        };
+
+        newLikeBtn.onclick = async () => {
+          const current = this.votes.get(identifier) || data;
+          const action = current.vote === 'like' ? 'clear' : 'like';
+          await sendVote(action);
+        };
+
+        newDislikeBtn.onclick = async () => {
+          const current = this.votes.get(identifier) || data;
+          const action = current.vote === 'dislike' ? 'clear' : 'dislike';
+          await sendVote(action);
+        };
+      };
+
+      let currentSpot = spots[currentIndex] || { name: item.name };
+      await bindVoteButtons(currentSpot);
+
+      [prevBtn, nextBtn].forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentSpot = spots[currentIndex] || { name: item.name };
+          bindVoteButtons(currentSpot);
+        });
+      });
+
+      track.querySelectorAll('.carousel-item').forEach((el, i) => {
+        el.onclick = () => {
+          const spot = spots[i];
+          const identifier = spot?.slug || spot?.name;
+          if (!identifier) return;
+          window.location.href = `../../pages/scenic.html?spot=${encodeURIComponent(identifier)}`;
+        };
+      });
+    }, contentInitDelay);
   }
 
   clearCarouselAutoPlay() {
@@ -1014,10 +1015,23 @@ export class MapManager {
 
   /** 自动补全功能 */
   showSuggestions(keyword, listEl) {
+    const searchInput = document.getElementById('search-input');
+    if (!listEl || !searchInput) return;
+
     if (!keyword) {
       listEl.classList.add('hidden');
       return;
     }
+
+    const parent = searchInput.parentElement;
+    const offsetLeft = searchInput.offsetLeft;
+    const offsetTop = searchInput.offsetTop + searchInput.offsetHeight;
+    if (parent) {
+      listEl.style.left = `${offsetLeft}px`;
+      listEl.style.top = `${offsetTop + 6}px`;
+    }
+    listEl.style.minWidth = `${searchInput.offsetWidth}px`;
+    listEl.style.width = `${searchInput.offsetWidth}px`;
 
     // 获取所有关键词（景点 + 省份）
     const keywordPool = this.allSearchKeys?.length ? this.allSearchKeys : Object.keys(this.spotToProvince || {});

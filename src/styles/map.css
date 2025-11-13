@@ -15,28 +15,15 @@ html {
   box-sizing: border-box;
 }
 
-.map-toolbar {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  z-index: 1000;
-  background: #fff;
-  border-radius: 8px;
-  padding: 6px 10px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-}
-
-.map-toolbar button {
-  background: #e59604;
-  color: #fff;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.map-toolbar button:hover {
-  background: #e59604;
+@media (hover: none) and (pointer: coarse) {
+  button,
+  .btn,
+  [class*="btn"],
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    box-shadow: none;
+  }
 }
 
 #info-panel {
@@ -547,30 +534,6 @@ button:hover {
   color: #4b3412;
 }
 
-.suggest-list {
-  position: absolute;
-  top: 35px;
-  left: 0;
-  width: 200px;
-  background: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  z-index: 1000;
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
-}
-
-.suggest-list li {
-  padding: 6px 10px;
-  cursor: pointer;
-}
-
-.suggest-list li:hover {
-  background: #f2eaff;
-}
-
 .toolbar-buttons {
   position: relative;
   display: flex;
@@ -580,9 +543,12 @@ button:hover {
 /* 自动补全列表样式 */
 .suggest-list {
   position: absolute;
-  top: 100%;
+  top: calc(100% + 6px);
   left: 0;
-  width: 180px;
+  width: auto;
+  min-width: 220px;
+  max-height: 240px;
+  overflow-y: auto;
   background: #fff;
   border: 1px solid #ddd;
   border-top: none;
@@ -612,6 +578,13 @@ button:hover {
 
 #search-input {
   border-radius: 6px 6px 0 0;
+}
+
+@media (max-width: 900px) {
+  .suggest-list {
+    min-width: calc(100% - 2px);
+    width: calc(100% - 2px);
+  }
 }
 
 /* === 搜索帮助弹窗 === */
@@ -1058,18 +1031,29 @@ button:hover {
   padding-bottom: calc(36px + env(safe-area-inset-bottom, 0px));
   overscroll-behavior: contain;
   contain: layout paint;
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+#detail-panel::before {
+  content: '';
+  position: sticky;
+  top: 0;
+  height: max(env(safe-area-inset-top, 0px), 1px);
+  margin-top: calc(-1 * max(env(safe-area-inset-top, 0px), 1px));
+  pointer-events: none;
+}
+
+#detail-panel::after {
+  content: '';
+  position: sticky;
+  bottom: 0;
+  height: env(safe-area-inset-bottom, 0px);
+  pointer-events: none;
 }
 
 #detail-panel::-webkit-scrollbar {
   display: none;
-}
-
-@supports (height: 100dvh) {
-  #detail-panel {
-    height: 100dvh;
-    min-height: 100dvh;
-    max-height: 100dvh;
-  }
 }
 
 #detail-panel.show {
@@ -1177,6 +1161,7 @@ button:hover {
 }
 
 @media (max-width: 900px) {
+
   html,
   body {
     height: auto;
@@ -1184,18 +1169,37 @@ button:hover {
     overflow: auto;
   }
 
+  body {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+  }
+
   .topbar {
-    position: relative;
+    order: -1;
+    position: sticky;
+    top: 12px;
+    left: 0;
+    right: 0;
+    margin: 0 auto 8px;
+    width: min(640px, calc(100% - 24px));
+    background: rgba(255, 248, 225, 0.96);
+    border-radius: 18px;
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+    border: 1px solid rgba(212, 183, 106, 0.8);
     flex-wrap: wrap;
     height: auto;
-    padding: 12px 20px 20px;
-    gap: 12px;
+    padding: 16px;
+    gap: 14px;
+    z-index: 1100;
   }
 
   .topbar-left {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 12px;
+    width: 100%;
   }
 
   .toolbar-buttons {
@@ -1221,13 +1225,7 @@ button:hover {
   }
 
   .map-wrapper {
-    padding-top: 120px;
-  }
-
-  .map-toolbar {
-    top: 88px;
-    right: auto;
-    left: 12px;
+    padding-top: 36px;
   }
 
   #marker-info-panel {
@@ -1237,7 +1235,7 @@ button:hover {
 
 @media (max-width: 768px) {
   .map-wrapper {
-    padding: 120px 16px 32px;
+    padding: 36px 16px 32px;
   }
 
   #map-container {
@@ -1301,6 +1299,7 @@ button:hover {
 }
 
 @media (max-width: 560px) {
+
   .topbar-left,
   .topbar-right {
     align-items: stretch;
@@ -1333,17 +1332,6 @@ button:hover {
     width: 100%;
   }
 
-  .map-toolbar {
-    left: 8px;
-    right: 8px;
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
-
-  .map-toolbar button {
-    flex: 1 1 calc(50% - 8px);
-  }
 }
 
 .detail-help-content button:hover {
@@ -1428,6 +1416,29 @@ button:hover {
 .favorite-btn:hover {
   background: #d4a933;
   color: #fff;
+}
+
+#favorite-spot-btn {
+  display: block;
+  margin: 10px auto 0;
+  text-align: center;
+  width: fit-content;
+}
+
+#detail-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@keyframes detail-prevent-wobble {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 1;
+  }
 }
 
 #favorite-spot-btn {

@@ -2,6 +2,8 @@
   --brand: #ffd97a;
   --text: #f7f7f7;
   --shadow: rgba(0, 0, 0, 0.45);
+  --scene-transition-duration: 0.8s;
+  --scene-transition-timing: ease-in-out;
 }
 
 * {
@@ -22,9 +24,9 @@ body {
   font-family: "Noto Serif SC", serif;
   color: var(--text);
   background: #0e0e0e;
+  overflow: hidden;
 }
 
-/* 顶部导航 */
 .navbar {
   position: fixed;
   inset: 0 0 auto 0;
@@ -62,41 +64,33 @@ body {
   color: var(--brand);
 }
 
-/* 滚动容器 */
 .scenes {
   margin-top: 64px;
   height: calc(100dvh - 64px);
-  overflow-y: scroll;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-  scroll-behavior: smooth;
-  scroll-snap-type: y mandatory;
-}
-
-/* 隐藏滚动条 */
-.scenes::-webkit-scrollbar {
-  display: none;
-}
-
-/* 每一幕风景 */
-.scene {
   position: relative;
-  min-height: calc(100dvh - 64px);
-  height: calc(100dvh - 64px);
+  overflow: hidden;
+  touch-action: none;
+}
+
+.scene {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   display: grid;
   place-items: center;
   padding: clamp(16px, 4vw, 48px);
   background:
     var(--bg, radial-gradient(1200px 800px at 50% 50%, #2a2a2a, #0f0f0f)) no-repeat center / cover;
-  background-attachment: scroll;
-  scroll-snap-align: start;
-  scroll-snap-stop: always;
-  will-change: transform;
-  contain: paint;
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform var(--scene-transition-duration) var(--scene-transition-timing),
+    opacity var(--scene-transition-duration) var(--scene-transition-timing);
+  will-change: transform, opacity;
   transform: translateZ(0);
   backface-visibility: hidden;
-  content-visibility: auto;
-  contain-intrinsic-size: calc(100dvh - 64px);
+  contain: paint;
 }
 
 .scene::after {
@@ -106,20 +100,6 @@ body {
   background: linear-gradient(180deg, rgba(10, 10, 10, .25), rgba(10, 10, 10, .35));
 }
 
-/* 文字容器 */
-.overlay {
-  position: relative;
-  z-index: 1;
-  width: min(980px, 90vw);
-  padding: clamp(24px, 5vw, 40px);
-  border-radius: 22px;
-  background: rgba(18, 18, 18, 0.48);
-  box-shadow: 0 12px 40px var(--shadow);
-  animation: fadeUp 1.2s ease;
-  backdrop-filter: blur(4px);
-}
-
-/* 文字容器 */
 .overlay {
   position: relative;
   z-index: 1;
@@ -130,6 +110,51 @@ body {
   box-shadow: none;
   animation: fadeUp 1.2s ease;
   backdrop-filter: none;
+  opacity: 1;
+  transition: opacity 0.3s ease-out;
+}
+
+.scene.is-active {
+  opacity: 1;
+  transform: translateY(0);
+  z-index: 2;
+  pointer-events: auto;
+}
+
+.scene.is-active .overlay {
+  animation: fadeUp 1.2s ease;
+}
+
+.scene.is-entering-from-down {
+  transform: translateY(50px);
+  opacity: 0;
+  z-index: 2;
+}
+
+.scene.is-entering-from-up {
+  transform: translateY(-50px);
+  opacity: 0;
+  z-index: 2;
+}
+
+.scene.is-exiting-up {
+  transform: translateY(-50px);
+  opacity: 0;
+  z-index: 1;
+}
+
+.scene.is-exiting-up .overlay {
+  opacity: 0;
+}
+
+.scene.is-exiting-down {
+  transform: translateY(50px);
+  opacity: 0;
+  z-index: 1;
+}
+
+.scene.is-exiting-down .overlay {
+  opacity: 0;
 }
 
 .place {
@@ -159,7 +184,7 @@ body {
   }
 }
 
-footer {
+.page-footer {
   text-align: center;
   color: #ddd;
   opacity: .9;
@@ -167,9 +192,15 @@ footer {
   background: rgba(20, 20, 20, .32);
 }
 
-@media (hover: hover) and (pointer: fine) {
-  .scene {
-    background-attachment: fixed;
+@media (hover: none) and (pointer: coarse) {
+  button,
+  a.btn,
+  .btn,
+  [class*="btn"],
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    box-shadow: none;
   }
 }
 
@@ -184,19 +215,8 @@ footer {
 }
 
 @media (max-width: 768px) {
-  .scenes {
-    scroll-snap-type: y proximity;
-  }
-
-  html,
-  body {
-    height: auto;
-    min-height: 100%;
-    overflow: auto;
-  }
-
   .navbar {
-    padding: 0 24px;
+    padding: 8px 20px;
   }
 
   .logo {
@@ -216,28 +236,33 @@ footer {
   }
 }
 
-@media (max-width: 560px) {
+@media (max-width: 640px) {
   .navbar {
     flex-direction: column;
-    height: auto;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
     gap: 12px;
-    padding: 12px 20px;
+    padding: 16px;
+    height: auto;
   }
 
   .navbar nav {
+    gap: 12px;
     width: 100%;
     flex-wrap: wrap;
     justify-content: center;
-    gap: 12px;
   }
 
   .scenes {
     margin-top: 96px;
     height: calc(100dvh - 96px);
   }
+}
 
-  .scene {
-    min-height: calc(100dvh - 96px);
+@media (max-width: 560px) {
+  .logo {
+    font-size: 1.2rem;
   }
 
   .place {

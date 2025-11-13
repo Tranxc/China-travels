@@ -90,7 +90,6 @@ ode scripts/seed-scenes.js 可一次性把地图/经典景点同步到 scenes �
 - `src/modules/map.js` - 地图核心逻辑模块
 - `src/modules/mapEvents.js` - 地图事件处理模块  
 - `src/styles/map.css` - 地图专用样式
-- `src/components/map-toolbar.html` - 地图工具栏HTML片段
 
 **具体任务**:
 
@@ -121,21 +120,7 @@ export class MapEvents {
 /* 地图容器样式 */
 #map-container { /* ... */ }
 #info-popup { /* 右侧弹窗样式 */ }
-.map-toolbar { /* 地图工具栏样式 */ }
 ```
-
-**src/components/map-toolbar.html** (地图工具栏):
-```html
-<!-- 地图搜索和控制工具栏 -->
-<div class="map-toolbar">
-  <input id="search-input" placeholder="搜索地点...">
-  <button id="search-btn">搜索</button>
-  <button id="locate-btn">定位</button>
-  <button id="my-favorites-btn">我的收藏</button>
-</div>
-```
-
----
 
 ### 成员 B: 前端UI/UX & 页面开发 (Frontend UI/UX)
 
@@ -287,7 +272,6 @@ export class EmailService {
 │   └── components/               # HTML组件目录
 │       ├── home-page.html       # 🎨 成员B: 首页HTML
 │       ├── culture-page.html    # 🎨 成员B: 文化页HTML
-│       ├── map-toolbar.html     # 🗺️ 成员A: 地图工具栏
 │       ├── auth-modal.html      # 🎨 成员B: 登录弹窗
 │       └── scene-drawer.html    # 🎨 成员B: 景点抽屉
 └── functions/                    # 后端API目录
@@ -312,7 +296,6 @@ export class EmailService {
 | `src/modules/map.js`               | 成员 A     | 地图初始化和核心功能    |             |
 | `src/modules/mapEvents.js`         | 成员 A     | 地图事件处理逻辑        |             |
 | `src/styles/map.css`               | 成员 A     | 地图容器和控件样式      |             |
-| `src/components/map-toolbar.html`  | 成员 A     | 地图工具栏HTML结构      |             |
 | **🎨 UI/UX相关**                    | **成员 B** | 页面设计、交互体验      | **7个文件** |
 | `src/modules/ui.js`                | 成员 B     | UI状态管理和页面切换    |             |
 | `src/modules/api.js`               | 成员 B     | 前端API调用封装         |             |

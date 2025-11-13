@@ -6,6 +6,17 @@ body {
   scroll-behavior: smooth;
 }
 
+@media (hover: none) and (pointer: coarse) {
+  button,
+  .btn,
+  [class*="btn"],
+  [role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+    box-shadow: none;
+  }
+}
+
 .navbar {
   position: fixed;
   top: 0;

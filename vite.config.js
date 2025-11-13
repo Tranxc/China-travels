@@ -40,8 +40,7 @@ function copyComponentsPlugin() {
       } catch (e) { }
 
       // 复制其他组件
-      const otherComponents = ['auth-modal.html', 'home-page.html', 'login-page.html',
-        'scene-drawer.html', 'map-toolbar.html']
+      const otherComponents = ['auth-modal.html', 'home-page.html', 'scene-drawer.html']
       mkdirSync('dist/src/components', { recursive: true })
       otherComponents.forEach(file => {
         try {
