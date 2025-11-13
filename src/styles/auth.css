@@ -6,7 +6,7 @@
     inset: 0;
     background: rgba(0, 0, 0, 0.45);
     backdrop-filter: blur(6px);
-    z-index: 40;
+    z-index: 11990;
 }
 
 /* 主体容器 */
@@ -15,7 +15,7 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    z-index: 50;
+    z-index: 12000;
     width: 90%;
     max-width: 480px;
 }
@@ -26,6 +26,7 @@
     padding: 2rem;
     box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
     border: 1px solid rgba(255, 255, 255, 0.1);
+    overflow: hidden;
 }
 
 @media (hover: none) and (pointer: coarse) {
@@ -165,20 +166,22 @@
     }
 }
 
-/* 验证码输入组 */
 .code-input-group {
-    display: flex;
-    gap: 0.5rem;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    column-gap: 0.5rem;
+    align-items: center;
 }
 
 .code-input-group input {
-    flex: 1;
+    flex: 1 1 auto;
+    min-width: 0; 
 }
 
 .send-code-btn {
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.25);
-    padding: 0 1.4rem;
+    padding: 0.85rem 1.1rem;
     border-radius: 10px;
     color: rgba(255, 255, 255, 0.85);
     cursor: pointer;
@@ -186,6 +189,15 @@
     white-space: nowrap;
     transition: all .25s ease;
     backdrop-filter: blur(2px);
+    max-width: 10.5em;
+}
+
+@media (max-width: 380px) {
+    .send-code-btn {
+        padding: 0 0.7rem;
+        font-size: 0.9rem;
+        max-width: 9.5em;
+    }
 }
 
 .send-code-btn:hover:not(:disabled) {

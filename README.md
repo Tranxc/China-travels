@@ -1,429 +1,289 @@
-﻿# 诗意山河 - 交互式地图文化探索平台
+<h1 align="center">诗意山河</h1>
+<p align="center">2025 年「零杯」网页设计大赛 · 方寸屏间，万里河山</p>
 
-## 1. 项目简介
-
-"诗意山河"是一个集成了高德地图服务、中国历史文化时间轴和用户交互系统（如收藏、评论）的Web应用程序。本项目旨在为用户提供一个深度互动、信息丰富且富有诗意的中国文化探索体验，让用户在浏览地理信息的同时，能直观地感受到"中国画卷"般的诗意与宏伟。
-
-### 数据快速初始化
-- 运行 
-ode scripts/seed-scenes.js 可一次性把地图/经典景点同步到 scenes 表（需配置好 wrangler d1 并保证数据库中存在该表）。
-- 默认向 china_travel_db 写入；若使用其他 D1 绑定，可通过环境变量 D1_DATABASE=your_db_name node scripts/seed-scenes.js 覆盖。
-
-## 2. 核心功能模块 (Features)
-
-- **用户认证系统**: 登录 / 注册 / 邮箱验证
-- **地图探索服务**: 高德地图API接入 / 搜索跳转 / 缩放 / 定位
-- **地图交互体验**: 双击获取地点信息 / 著名景点抽屉式详情
-- **文化内容展示**: 首页 / 中国历史文化滚动时间轴
-- **用户个性化功能**: 我的收藏 / 景点评论 / 删除评论
-- **内容关联**: 景点与相关文化诗词的连接
-
-## 3. 页面与模块详细分解
-
-### (一) 首页 (Homepage)
-**目标**: 作为应用的门户，提供项目简介和引导。
-
-**组件**:
-- 顶部栏 (Navbar): 左上角Logo, 右上角导航 (首页, 文化介绍, 登录/注册)
-- 中间内容 (Hero Section): Slogan、介绍、[开始探索] 按钮 (跳转至地图页)
-- 页脚 (Footer): 版权信息
-
-### (二) 文化介绍页面
-**目标**: 以视觉化的方式展示中国历史文化变迁。
-- **访问**: 无需注册
-- **核心组件**: 滚动时间轴 (展示历史节点、景点变迁)
-
-### (三) 登录 / 注册页面
-**目标**: 提供安全、简单的用户认证 (弹窗或独立页面)
-- **功能**: 邮箱注册 (集成 Resend) 和登录
-
-### (四) 探索地图页面 (核心)
-**目标**: 提供主要的地图交互功能。
-
-**组件**:
-- 顶部栏 (Map Navbar): 搜索框 + [我的收藏] 按钮、引导语、用户信息
-- 中间地图容器 (Map Container): 接入高德地图 JS API
-- 地图控件 (Map Controls): 保留高德缩放，添加 [定位] 按钮
-
-## 4. 核心交互流程
-
-### (一) 交互1：常规地点信息 (右侧弹窗)
-- **触发**: 用户在地图上 doubleClick (双击) 任意地点
-- **响应**: 调用高德API (逆地理编码)，在 右侧 弹出一个小信息窗，展示地点介绍
-
-### (二) 交互2：著名景点详情 (底部抽屉)
-- **触发**: 用户 doubleClick 特定的预设景点
-- **响应**: 执行 交互1，并在地图 正下方 显示一个 [箭头] 按钮
-- **后续**: 用户点击 [箭头]
-- **响应**: "景点文化介绍页面" 以抽屉（Drawer）的形式从 底部向上平滑划出
-
-### (三) 交互3：景点文化介绍页面 (抽屉内部)
-- **布局**: 左 (图片)、中 (介绍、诗词、收藏按钮)、右 (评论区)
-- **评论区**: 默认 收缩，点击后 向左平滑划出。提供评论列表、发表、删除功能
-
-## 5. 技术栈与API需求
-
-### (一) 前端 (Frontend)
-- **构建工具**: Vite (负责开发服务器、打包 src/main.js 和 src/style.css)
-- **核心文件**: index.html (入口HTML), src/main.js (Vite 指定的 JS 入口), src/style.css
-- **架构**: Vanilla JS (原生JS) 单页应用 (SPA)
-- **地图**: 高德地图 JavaScript API 2.0
-- **样式**: Tailwind CSS (推荐) 或原生 CSS
-
-**提示**: 如使用 Tailwind，需在项目根目录配置 tailwind.config.js 和 postcss.config.js，并让 Vite 加载一个包含 @tailwind 指令的 CSS 文件。
-
-### (二) 后端 & 服务 (Backend & Services)
-- **文件**: functions/[[path]].js (Cloudflare Pages Functions)
-- **核心API**: 高德地图 Web 服务 API (逆地理编码, POI搜索)
-- **邮件服务**: Resend API
-- **对象存储**: Cloudflare R2
-- **数据库**: Firebase Firestore / Supabase
-- **路由**: (推荐) 在 functions/[[path]].js 中使用 itty-router
-
-## 6. 三人团队分工建议 (模块化文件分离)
-
-### 成员 A: 前端核心 & 地图专家 (Frontend Lead & Map Specialist)
-
-**核心职责**: 负责高德地图API的深度集成和所有地图交互。
-
-**独立工作文件**:
-- `src/modules/map.js` - 地图核心逻辑模块
-- `src/modules/mapEvents.js` - 地图事件处理模块  
-- `src/styles/map.css` - 地图专用样式
-
-**具体任务**:
-
-**src/modules/map.js** (核心地图模块):
-```javascript
-// 地图初始化和配置
-export class MapManager {
-  constructor() { /* ... */ }
-  initMap() { /* 初始化高德地图 */ }
-  loadPlugins() { /* 加载地图插件 */ }
-  // 其他地图核心方法...
-}
-```
-
-**src/modules/mapEvents.js** (地图事件处理):
-```javascript
-// 地图交互事件处理
-export class MapEvents {
-  onMapDoubleClick(event) { /* 双击事件处理 */ }
-  handleSearch() { /* 搜索功能 */ }
-  handleLocateMe() { /* 定位功能 */ }
-  // 其他事件处理方法...
-}
-```
-
-**src/styles/map.css** (地图样式):
-```css
-/* 地图容器样式 */
-#map-container { /* ... */ }
-#info-popup { /* 右侧弹窗样式 */ }
-```
-
-### 成员 B: 前端UI/UX & 页面开发 (Frontend UI/UX)
-
-**核心职责**: 负责所有非地图的页面结构、UI/UX设计、页面切换和交互实现。
-
-**独立工作文件**:
-- `src/modules/ui.js` - UI状态管理和页面切换
-- `src/modules/api.js` - API调用封装
-- `src/styles/pages.css` - 页面样式
-- `src/styles/components.css` - 组件样式  
-- `src/components/home-page.html` - 首页HTML
-- `src/components/culture-page.html` - 文化页HTML
-- `src/components/auth-modal.html` - 登录注册弹窗
-- `src/components/scene-drawer.html` - 景点详情抽屉
-
-**具体任务**:
-
-**src/modules/ui.js** (UI管理模块):
-```javascript
-// 页面切换和UI状态管理
-export class UIManager {
-  navigateTo(pageId) { /* 页面切换逻辑 */ }
-  openAuthModal() { /* 打开登录弹窗 */ }
-  showSceneDrawer(sceneId) { /* 显示景点抽屉 */ }
-  showInfoPopup(addressString) { /* 显示信息弹窗 */ }
-  // 其他UI管理方法...
-}
-```
-
-**src/modules/api.js** (API封装模块):
-```javascript
-// 后端API调用封装
-export class ApiService {
-  async login(email, password) { /* 登录API */ }
-  async register(email, password) { /* 注册API */ }
-  async getSceneDetails(sceneId) { /* 获取景点详情 */ }
-  async getComments(sceneId) { /* 获取评论 */ }
-  // 其他API方法...
-}
-```
-
-**src/styles/pages.css** (页面样式):
-```css
-/* 首页、文化页等页面样式 */
-#page-home { /* 首页样式 */ }
-#page-culture { /* 文化页样式 */ }
-.timeline { /* 时间轴样式 */ }
-```
-
-**src/styles/components.css** (组件样式):
-```css
-/* 弹窗、抽屉等组件样式 */
-#auth-modal { /* 登录弹窗样式 */ }
-#scene-drawer { /* 景点抽屉样式 */ }
-.comment-panel { /* 评论面板样式 */ }
-```
-
-**src/components/*.html** (HTML组件片段):
-- 各个页面和组件的HTML结构
-- 便于模块化管理和维护
+<p align="center">
+  <a href="https://235800.xyz" target="_blank">
+    <img src="https://img.shields.io/badge/在线访问-诗意山河-ff4d4f?style=for-the-badge" alt="在线访问 诗意山河" />
+  </a>
+</p>
 
 ---
 
-### 成员 C: 后端 & 数据管理 (Backend & Full-Stack)
+## 1. 团队信息 👥🌐
 
-**核心职责**: 负责后端API、数据存储、用户认证和第三方服务集成。
+- 作品名称: 诗意山河
+- 参赛组别: 零组
+- 队伍名称: 请填写队伍名称
+- 队长信息: 请填写：姓名 - 学院 - 学号 - 联系方式
+- 队员信息:
+  - 王炎煊 - 计算机学院 - 2024302111002 - 成员A
+  - 熊奕睿 - 计算机学院 - 2024302111193 - 成员B
+  - 周轶翔 - 计算机学院 - 2024302111355 - 成员C
 
-**独立工作文件**:
-- `functions/api/auth.js` - 用户认证相关API
-- `functions/api/scenes.js` - 景点数据相关API  
-- `functions/api/comments.js` - 评论系统API
-- `functions/api/favorites.js` - 收藏功能API
-- `functions/services/database.js` - 数据库操作服务
-- `functions/services/email.js` - 邮件服务
-- `functions/utils/auth.js` - 认证工具函数
-- `functions/[[path]].js` - 路由入口文件
+比赛主题: 方寸屏间，万里河山
 
-**具体任务**:
+## 2. 项目简介 🗺️
 
-**functions/[[path]].js** (路由入口):
-```javascript
-// 主路由文件，整合所有API模块
-import { Router } from 'itty-router';
-import { authRoutes } from './api/auth.js';
-import { sceneRoutes } from './api/scenes.js';
-// ... 其他路由导入
+“诗意山河”是一个集成了地理信息系统（GIS）与中国文化探索的交互式 Web 平台。我们响应大赛“方寸屏间，万里河山”的主题，旨在通过现代网页技术，将中国壮丽的自然风光与深厚的历史文化底蕴生动地展现在用户眼前。
 
-const router = Router();
-router.all('/api/auth/*', authRoutes);
-router.all('/api/scenes/*', sceneRoutes);
-// ... 其他路由配置
+本项目不仅仅是一个静态的展示页面，更是一个功能完备的动态 Web 应用。用户可以在交互式地图上探索中国各省份的著名景点，查看景点的详细图文介绍，并进行收藏、投票（喜欢/不喜欢）、发表评论、回复评论等一系列互动操作。
 
-export const onRequest = (context) => router.handle(context.request, context);
+## 3. 项目亮点 🏆
+
+- 🚀 具有后端：完整 Serverless 后端（Cloudflare Functions，位于 `/functions`）
+  - 实现认证、景点数据查询、收藏、投票、评论（发表/点赞/举报/删除）等 API。
+  
+- 💾 具有数据库：Cloudflare D1 持久化存储（见 `schema.sql`）
+  
+- 🔄 前后端协作与动态网页：`/src/modules/api.js` 调后端 API，动态驱动站点内容
+  
+- 📱 响应式布局：原生 CSS 媒体查询覆盖 PC/平板/手机（见 `map.css`, `main.css`, `pages/scenic.html`）
+  
+- ✅ 高功能完成度：从“山河行吟”到“交互式地图”再到“景点详情与互动”的完整闭环
+  
+- 🎨 原创设计与用户体验：全部原生 CSS 设计，不使用现成 UI 库，统一且富有文化气质
+
+## 4. 核心功能模块 ✨
+
+- 📜 山河行吟（文化长廊页） — `src/components/culture-page.html`
+  - 沉浸式全屏垂直滚动页面。通过滚动浏览代表中国山河的诗意场景，实现“一卷诗意”的视觉体验。
+
+- 🧭 交互式地图（核心探索页） — 基于高德地图 JS API（见 `src/modules/map.js`）
+  - 动态加载全国省份图层、省会标签，并高亮显示边界。
+  - 高效搜索，支持输入省份或景点名称（如“故宫”）自动定位到相应省份。
+  - 信息窗格（Info Panel）：点击省份标签，右侧弹出该省份的概览信息。
+  - 景点抽屉（Detail Drawer）：点击“查看详情”，底部滑出该省份的著名景点轮播图。
+
+- 🏞️ 景点详情页（独立景点页） — `pages/scenic.html`
+  - 提供图片轮播、详细文字摘要。
+  - 集成完整评论系统与互动功能。
+
+- 🔐 完整的用户认证系统
+  - 邮箱验证码：使用 Resend 服务发送邮箱验证码（`functions/services/email.js`）。
+  - 注册与登录：新用户注册（昵称/密码）与密码登录（`functions/api/auth/`）。
+  - 前端状态管理：`localStorage` + `src/modules/auth.js` 动态管理登录态与 UI。
+
+- 💬 丰富的用户互动功能
+  - 景点投票：对景点进行“喜欢/不喜欢”的投票（`functions/api/scene.js`）。
+  - 景点收藏：登录用户可收藏并在个人中心查看（`functions/api/favorites.js`）。
+  - 评论系统：发表评论、回复评论、点赞、举报、删除自己的评论（`functions/api/comment.js`）。
+
+## 5. 技术栈与架构 💻
+
+本项目采用前后端分离的现代 Web 架构，深度整合 Cloudflare 全栈服务。
+
+- 前端
+  - 构建工具：Vite
+  - 核心技术：原生 JavaScript（ESM 模块化）、HTML5、CSS3
+  - 地图服务：高德地图 JavaScript API
+
+- 后端（Serverless）
+  - 运行环境：Cloudflare Pages + Cloudflare Functions
+  - API：通过 `/functions/api/` 下的 Serverless 函数提供 RESTful 接口
+  - 数据库：Cloudflare D1（`schema.sql` 定义表结构，`wrangler.toml` 绑定）
+  - 对象存储：Cloudflare R2（存储图片等资源，通过 `assets.235800.xyz` 访问）
+  - 邮件服务：Resend API（发送注册验证码）
+
+### 架构图（Mermaid）
+
+```mermaid
+graph TD
+    subgraph "用户端"
+        User["👤 用户"]
+    end
+
+    subgraph "前端 (Vite 构筑)"
+        Browser["🌐 浏览器 - 诗意山河 (HTML/CSS/Vanilla JS)"]
+    end
+    
+    subgraph "后端 (Cloudflare)"
+        CF_Pages["📄 Cloudflare Pages (应用托管)"]
+        CF_Functions["⚡ API (Serverless Functions)"]
+        D1["🗄️ Database (D1)"]
+        R2["🖼️ Object Storage (R2)"]
+    end
+
+    subgraph "第三方服务"
+        AMap["🗺️ 高德地图 API"]
+        Resend["📧 Resend Email API"]
+    end
+
+    User --> Browser
+    Browser -- "地图数据/搜索" --> AMap
+    Browser -- "加载图片/资源" --> R2
+    Browser -- "API 请求 (Auth, Scenes, Comments, Votes)" --> CF_Functions
+    
+    CF_Functions -- "读/写数据" --> D1
+    CF_Functions -- "发送验证码" --> Resend
+    CF_Pages -- "提供前端页面" --> Browser
 ```
 
-**functions/api/auth.js** (认证API):
-```javascript
-// 用户认证相关API
-export async function handleLogin(request, env) { /* 登录逻辑 */ }
-export async function handleRegister(request, env) { /* 注册逻辑 */ }
-export async function handleVerifyEmail(request, env) { /* 邮箱验证 */ }
+### 数据库结构（Cloudflare D1）
+
+- `users`：用户信息
+- `scenes`：景点基础信息（由 `scripts/seed-scenes.js` 从 `scenes-data.js` 注入）
+- `verification_codes`：邮箱验证码
+- `favorites`：用户与景点收藏关联
+- `scene_votes`：景点投票（喜欢/不喜欢）
+- `comments`：评论内容（支持父子关系/回复）
+- `comment_likes`：评论点赞
+- `comment_reports`：评论举报
+
+## 6. 使用的非自制库 🛠️
+
+- 高德地图 JavaScript API：核心地图功能（图层、搜索、标记）
+- Vite：前端开发与构建工具
+- Resend（API 服务）：发送注册验证码邮件
+
+> 说明：未使用任何预设样式的 UI 库（如 Bootstrap、ElementUI 等）；样式均为原生 CSS 编写。
+
+## 7. 项目运行与部署 ⚙️
+
+### 本地开发（前端）
+
+```bash
+npm install
+npm run dev
 ```
 
-**functions/api/scenes.js** (景点API):
-```javascript
-// 景点数据相关API
-export async function getFamousScenes(request, env) { /* 获取著名景点列表 */ }
-export async function getSceneDetails(request, env) { /* 获取景点详情 */ }
+### 本地开发（后端 / Functions）
+
+1) 按 `wrangler.toml.example` 配置 `wrangler.toml`，并确保安装 Wrangler CLI。
+
+2) 启动本地 Pages 开发（同时代理前端并运行 Functions）：
+
+```bash
+npx wrangler pages dev dist
 ```
 
-**functions/services/database.js** (数据库服务):
-```javascript
-// 数据库操作封装
-export class DatabaseService {
-  constructor(env) { /* 初始化数据库连接 */ }
-  async createUser(userData) { /* 创建用户 */ }
-  async getSceneById(sceneId) { /* 获取景点信息 */ }
-  // 其他数据库操作...
-}
+### 数据（可选）
+
+向本地 D1 数据库填充景点数据：
+
+```bash
+node scripts/seed-scenes.js
 ```
 
-**functions/services/email.js** (邮件服务):
-```javascript
-// 邮件发送服务 (Resend集成)
-export class EmailService {
-  constructor(apiKey) { /* 初始化邮件服务 */ }
-  async sendVerificationEmail(email, token) { /* 发送验证邮件 */ }
-}
+### 构建
+
+```bash
+npm run build
 ```
+
+### 部署（Cloudflare Pages）
+
+```bash
+npx wrangler pages deploy dist
+```
+
+### 资源上传（可选，上传到 R2）
+
+```bash
+npm run upload:assets
+```
+
 
 ## 7. 模块化文件分工概览
 
-### 📁 项目文件结构 (模块化分离)
+### 📁 项目文件结构
 ```
 诗意山河/
-├── index.html                    # 入口HTML (共同维护)
+├── index.html                     # 入口 HTML
 ├── src/
-│   ├── main.js                   # 主入口文件 (共同维护)
-│   ├── modules/                  # 功能模块目录
-│   │   ├── map.js               # 🗺️ 成员A: 地图核心逻辑
-│   │   ├── mapEvents.js         # 🗺️ 成员A: 地图事件处理  
-│   │   ├── ui.js                # 🎨 成员B: UI状态管理
-│   │   └── api.js               # 🎨 成员B: API调用封装
-│   ├── styles/                   # 样式文件目录
-│   │   ├── main.css             # 🎨 成员B: 主样式文件
-│   │   ├── map.css              # 🗺️ 成员A: 地图样式
-│   │   ├── pages.css            # 🎨 成员B: 页面样式
-│   │   └── components.css       # 🎨 成员B: 组件样式
-│   └── components/               # HTML组件目录
-│       ├── home-page.html       # 🎨 成员B: 首页HTML
-│       ├── culture-page.html    # 🎨 成员B: 文化页HTML
-│       ├── auth-modal.html      # 🎨 成员B: 登录弹窗
-│       └── scene-drawer.html    # 🎨 成员B: 景点抽屉
-└── functions/                    # 后端API目录
-    ├── [[path]].js              # ⚙️ 成员C: 路由入口
-    ├── api/                     # API模块目录
-    │   ├── auth.js              # ⚙️ 成员C: 用户认证API
-    │   ├── scenes.js            # ⚙️ 成员C: 景点数据API
-    │   ├── comments.js          # ⚙️ 成员C: 评论系统API
-    │   └── favorites.js         # ⚙️ 成员C: 收藏功能API
-    ├── services/                # 服务模块目录
-    │   ├── database.js          # ⚙️ 成员C: 数据库服务
-    │   └── email.js             # ⚙️ 成员C: 邮件服务
-    └── utils/                   # 工具函数目录
-        └── auth.js              # ⚙️ 成员C: 认证工具
+│   ├── main.js                    # 前端主入口
+│   ├── config/assets.js           # 资源映射/常量
+│   ├── data/                      # 地理/标注数据
+│   │   ├── province-capitals.js
+│   │   ├── province-taglines.js
+│   │   └── provinces.js
+│   ├── modules/                   # 前端功能模块
+│   │   ├── map.js                 # 🗺️ 地图核心逻辑
+│   │   ├── mapEvents.js           # 🗺️ 地图事件处理
+│   │   ├── mapMain.js             # 🗺️ 地图页面组织/装配
+│   │   ├── ui.js                  # 🎨 UI 状态与页面切换
+│   │   ├── api.js                 # 🎨 前端 API 封装
+│   │   ├── auth.js                # 🎨 前端认证状态管理
+│   │   ├── scenic-page.js         # 🎨 景点详情页逻辑
+│   │   └── scrollEffect.js        # 🎨 文化页滚动效果
+│   ├── styles/                    # 样式文件
+│   │   ├── main.css
+│   │   ├── map.css
+│   │   ├── pages.css
+│   │   ├── auth.css
+│   │   ├── culture.css
+│   │   └── mountain.css
+│   └── components/                # 页面/组件片段
+│       ├── home-page.html
+│       ├── culture-page.html
+│       ├── auth-modal.html
+│       ├── scene-drawer.html
+│       ├── map.html
+│       └── map-toolbar.html
+├── pages/
+│   └── scenic.html                # 景点详情页（独立页面）
+└── functions/                     # 后端 Functions（文件即路由）
+    ├── api/
+    │   ├── auth/
+    │   │   ├── complete-register.js
+    │   │   ├── login.js
+    │   │   ├── send-code.js
+    │   │   └── verify.js
+    │   ├── comment.js
+    │   ├── favorites.js
+    │   └── scene.js
+    ├── services/
+    │   ├── database.js
+    │   └── email.js
+    └── utils/
+        └── auth.js
 ```
 
-### 👥 明确的文件分工表
+### 📋 文件分工表
 
-| 文件/模块                          | 负责人     | 主要职责                | 文件数量    |
-| ---------------------------------- | ---------- | ----------------------- | ----------- |
-| **🗺️ 地图相关**                     | **成员 A** | 地图API集成、交互逻辑   | **4个文件** |
-| `src/modules/map.js`               | 成员 A     | 地图初始化和核心功能    |             |
-| `src/modules/mapEvents.js`         | 成员 A     | 地图事件处理逻辑        |             |
-| `src/styles/map.css`               | 成员 A     | 地图容器和控件样式      |             |
-| **🎨 UI/UX相关**                    | **成员 B** | 页面设计、交互体验      | **7个文件** |
-| `src/modules/ui.js`                | 成员 B     | UI状态管理和页面切换    |             |
-| `src/modules/api.js`               | 成员 B     | 前端API调用封装         |             |
-| `src/styles/main.css`              | 成员 B     | 主样式和全局样式        |             |
-| `src/styles/pages.css`             | 成员 B     | 页面布局和样式          |             |
-| `src/styles/components.css`        | 成员 B     | 组件样式和动画          |             |
-| `src/components/home-page.html`    | 成员 B     | 首页HTML结构            |             |
-| `src/components/culture-page.html` | 成员 B     | 文化介绍页HTML          |             |
-| `src/components/auth-modal.html`   | 成员 B     | 登录注册弹窗HTML        |             |
-| `src/components/scene-drawer.html` | 成员 B     | 景点详情抽屉HTML        |             |
-| **⚙️ 后端相关**                     | **成员 C** | 服务端逻辑、数据管理    | **8个文件** |
-| `functions/[[path]].js`            | 成员 C     | 路由入口和整合          |             |
-| `functions/api/auth.js`            | 成员 C     | 用户认证API逻辑         |             |
-| `functions/api/scenes.js`          | 成员 C     | 景点数据API逻辑         |             |
-| `functions/api/comments.js`        | 成员 C     | 评论系统API逻辑         |             |
-| `functions/api/favorites.js`       | 成员 C     | 收藏功能API逻辑         |             |
-| `functions/services/database.js`   | 成员 C     | 数据库操作封装          |             |
-| `functions/services/email.js`      | 成员 C     | 邮件服务封装            |             |
-| `functions/utils/auth.js`          | 成员 C     | 认证工具函数            |             |
-| **🔧 共同维护**                     | **全体**   | 项目配置和入口文件      | **3个文件** |
-| `index.html`                       | 全体       | 主HTML入口 (引入各模块) |             |
-| `src/main.js`                      | 全体       | JS主入口 (整合各模块)   |             |
-| `vite.config.js`                   | 成员 B     | Vite配置和代理设置      |             |
+| 文件/模块                            | 负责人   | 主要职责                     |
+| ------------------------------------ | -------- | ---------------------------- |
+| `index.html`                         | 全体     | 根页面/入口                  |
+| `src/main.js`                        | 全体     | 前端主入口/集成              |
+| `vite.config.js`                     | 全体     | Vite 配置                    |
+| `src/modules/scenic-page.js`         | 全体     | 景点详情页逻辑（共同）       |
+| `src/components/scene-drawer.html`   | 全体     | 轮播页面（抽屉）结构（共同） |
+| `pages/scenic.html`                  | 全体     | 景点详情/轮播/评论页面（共同）|
+| `src/modules/map.js`                 | 成员 A   | 地图初始化与核心逻辑         |
+| `src/modules/mapEvents.js`           | 成员 A   | 地图交互事件处理             |
+| `src/modules/mapMain.js`             | 成员 A   | 地图页面装配/组织            |
+| `src/styles/map.css`                 | 成员 A   | 地图容器与控件样式           |
+| `src/components/map.html`            | 成员 A   | 地图页面结构                 |
+| `src/components/map-toolbar.html`    | 成员 A   | 地图工具栏结构               |
+| `src/modules/ui.js`                  | 成员 B   | UI 状态管理与页面切换        |
+| `src/modules/api.js`                 | 成员 B   | 前端 API 调用封装            |
+| `src/modules/auth.js`                | 成员 B   | 前端登录态/鉴权状态          |
+| `src/modules/scrollEffect.js`        | 成员 B   | 文化页滚动与动画             |
+| `src/styles/main.css`                | 成员 B   | 全局基础样式                 |
+| `src/styles/pages.css`               | 成员 B   | 页面布局与响应式             |
+| `src/styles/auth.css`                | 成员 B   | 认证相关样式                 |
+| `src/styles/culture.css`             | 成员 B   | 文化页样式                   |
+| `src/styles/mountain.css`            | 成员 B   | 主题/装饰样式                |
+| `src/components/home-page.html`      | 成员 B   | 首页结构                     |
+| `src/components/culture-page.html`   | 成员 B   | 文化长廊页结构               |
+| `src/components/auth-modal.html`     | 成员 B   | 登录/注册弹窗结构            |
+| `functions/api/auth/complete-register.js` | 成员 C | 注册完成（设置昵称/密码）    |
+| `functions/api/auth/login.js`        | 成员 C   | 用户登录                     |
+| `functions/api/auth/send-code.js`    | 成员 C   | 发送邮箱验证码               |
+| `functions/api/auth/verify.js`       | 成员 C   | 验证邮箱验证码               |
+| `functions/api/scene.js`             | 成员 C   | 景点查询/详情/投票接口       |
+| `functions/api/comment.js`           | 成员 C   | 评论发表/回复/点赞/举报/删改 |
+| `functions/api/favorites.js`         | 成员 C   | 收藏增删查接口               |
+| `functions/services/database.js`     | 成员 C   | D1 数据库访问封装            |
+| `functions/services/email.js`        | 成员 C   | Resend 邮件服务封装          |
+| `functions/utils/auth.js`            | 成员 C   | Token/鉴权工具               |
+| `scripts/seed-scenes.js`             | 成员 C   | 景点数据导入脚本             |
+| `scripts/scenes-data.js`             | 成员 C   | 景点数据源                   |
+| `scripts/upload-assets.js`           | 成员 C   | 资源上传至 R2                |
+| `schema.sql`                         | 成员 C   | 数据表结构定义               |
+| `wrangler.toml`                      | 成员 C   | Cloudflare 绑定与本地配置    |
 
-### 🔄 模块间协作方式
+## 8. 补充说明（初赛）📝
 
-**成员A ↔ 成员B**: 
-- A的 `mapEvents.js` 调用 B的 `ui.js` 中的方法
-- B的 `ui.js` 调用 A的 `map.js` 中的地图方法
-
-**成员B ↔ 成员C**:
-- B的 `api.js` 调用 C提供的后端API接口
-- C根据B的需求设计API数据格式
-
-**统一接口约定**:
-```javascript
-// 成员A提供给成员B的接口
-window.MapAPI = {
-  initMap: () => {},
-  focusLocation: (lat, lng) => {},
-  // ...
-}
-
-// 成员B提供给成员A的接口  
-window.UIManager = {
-  showInfoPopup: (data) => {},
-  showSceneArrow: (sceneId) => {},
-  // ...
-}
-```
-
-## 8. 开发启动指南
-
-1. **环境准备**
-   ```bash
-   npm install
-   ```
-
-2. **本地开发**
-   ```bash
-   # 启动前端开发服务器 (Vite)
-   npm run dev
-   
-   # 启动后端开发服务器 (Wrangler) - 新终端窗口
-   npx wrangler pages dev dist
-   ```
-
-3. **部署**
-   ```bash
-   # 构建项目
-   npm run build
-   
-   # 部署到 Cloudflare Pages
-   npx wrangler pages deploy dist
-   ```
-
-## 8. 开发协作流程
-
-### 🚀 项目启动流程
-1. **成员C** 首先创建后端API框架
-2. **成员B** 搭建基础UI框架和页面结构  
-3. **成员A** 集成地图功能和交互
-4. **全体** 进行接口联调和测试
-
-### 🔧 本地开发配置
-
-**main.js 整合示例**:
-```javascript
-// src/main.js - 各模块整合入口
-import { MapManager } from './modules/map.js';
-import { UIManager } from './modules/ui.js';
-import { ApiService } from './modules/api.js';
-
-// 初始化各模块
-const mapManager = new MapManager();
-const uiManager = new UIManager();
-const apiService = new ApiService();
-
-// 暴露全局接口供模块间调用
-window.MapAPI = mapManager;
-window.UIManager = uiManager;
-window.ApiService = apiService;
-
-// 应用启动
-document.addEventListener('DOMContentLoaded', () => {
-  uiManager.init();
-  mapManager.init();
-});
-```
-
-**CSS 整合示例**:
-```css
-/* src/styles/main.css - 样式入口文件 */
-@import './pages.css';      /* 成员B: 页面样式 */
-@import './components.css'; /* 成员B: 组件样式 */
-@import './map.css';        /* 成员A: 地图样式 */
-
-/* 全局样式 */
-* { box-sizing: border-box; }
-body { margin: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
-```
-
-### 📝 开发规范
-- **命名规范**: 使用kebab-case命名文件，camelCase命名变量
-- **注释规范**: 每个函数必须有JSDoc注释
-- **提交规范**: `feat: 功能描述` / `fix: 修复描述` / `style: 样式调整`
-- **测试要求**: 各模块完成后进行单元测试
-
----
-
-**让我们一起创造一个诗意盎然的中华文化探索之旅！** 🗺️✨
+- 项目状态：初赛提交版本。
+- 已知问题：部分微小按键（如景点详情页轮播按钮、评论区点赞按钮等）在特定操作流程下偶发交互问题。后续将重点修复相关体验问题。
+- 未来展望：计划优化地图性能、完善景点诗词文化数据，彻底解决已知交互 BUG，持续优化用户体验。
