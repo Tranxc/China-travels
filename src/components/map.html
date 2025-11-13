@@ -15,26 +15,7 @@
     }
   </style>
 
-  <script>
-    (function () {
-      try {
-        const user = JSON.parse(localStorage.getItem('user') || 'null');
-        if (user) {
-          // 页面加载后立即更新
-          document.addEventListener('DOMContentLoaded', function () {
-            const switchBtn = document.querySelector('#switch-account-btn');
-            if (switchBtn && user) {
-              switchBtn.textContent = user.nickname || user.email.split('@')[0];
-              switchBtn.style.color = '#ffd36b'; 
-            }
-          });
-        }
-      } catch (e) {
-        console.error('检查登录状态失败:', e);
-      }
-    })();
-  </script>
-</head>
+  </head>
 
 <body>
   <div class="map-wrapper">
@@ -55,7 +36,8 @@
     <div class="topbar-right">
       <div class="user-menu">
         <button id="favorites-btn">我的收藏</button>
-        <button id="switch-account-btn">切换账号</button>
+        <button id="user-auth-btn" class="btn-open-auth user-auth-btn" data-auth-static="true"
+          data-default-label="登录">登录</button>
       </div>
     </div>
   </header>
@@ -67,15 +49,64 @@
   <!-- 地图交互模块 -->
   <script type="module" src="../modules/mapMain.js"></script>
 
+  <div id="components">
+    <div include-html="../components/auth-modal.html"></div>
+  </div>
+
   <script type="module">
-    // 初始化认证模块
     import { initAuthUI } from '../modules/auth.js';
 
-    document.addEventListener('DOMContentLoaded', () => {
+    async function loadIncludes() {
+      const hosts = document.querySelectorAll('[include-html]');
+      const tasks = Array.from(hosts).map(async (host) => {
+        const file = host.getAttribute('include-html');
+        if (!file) return;
+        try {
+          const res = await fetch(file);
+          if (!res.ok) throw new Error('无法加载 ' + file);
+          host.innerHTML = await res.text();
+        } catch (error) {
+          console.error('[Include] 加载失败:', file, error);
+          host.innerHTML = '<!-- 加载失败：' + file + ' -->';
+        }
+      });
+      await Promise.all(tasks);
+    }
+
+    function syncUserButton() {
+      const btn = document.getElementById('user-auth-btn');
+      if (!btn) return;
+      try {
+        const user = JSON.parse(localStorage.getItem('user') || 'null');
+        const fallback = btn.dataset.defaultLabel || '登录';
+        if (user) {
+          btn.textContent = user.nickname || (user.email ? user.email.split('@')[0] : fallback);
+          btn.classList.add('is-authenticated');
+        } else {
+          btn.textContent = fallback;
+          btn.classList.remove('is-authenticated');
+        }
+      } catch (error) {
+        console.warn('同步登录状态失败:', error);
+      }
+    }
+
+    syncUserButton();
+    const includeTask = loadIncludes();
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await includeTask;
       initAuthUI();
+      syncUserButton();
+    });
+
+    document.addEventListener('auth:state-change', () => syncUserButton());
+    window.addEventListener('storage', (event) => {
+      if (event.key === 'user') {
+        syncUserButton();
+      }
     });
   </script>
-
   <!-- 省份详情面板 -->
   <div id="detail-panel" class="hidden">
     <div class="detail-header">

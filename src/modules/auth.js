@@ -478,7 +478,16 @@ export function updateAuthUI() {
     if (user) {
         loginBtns.forEach(btn => {
             // 如果按钮已经被替换，跳过
-            if (!btn || !btn.parentNode) return;
+            if (!btn) return;
+
+            if (btn.dataset.authStatic === 'true') {
+                const label = user.nickname || user.email.split('@')[0];
+                btn.textContent = label;
+                btn.classList.add('is-authenticated');
+                return;
+            }
+
+            if (!btn.parentNode) return;
 
             // 移除登录按钮
             btn.remove();
@@ -525,7 +534,18 @@ export function updateAuthUI() {
                 dropdown.classList.remove('active');
             });
         });
+    } else {
+        loginBtns.forEach(btn => {
+            if (!btn) return;
+            if (btn.dataset.authStatic === 'true') {
+                const fallback = btn.dataset.defaultLabel || '登录';
+                btn.textContent = fallback;
+                btn.classList.remove('is-authenticated');
+            }
+        });
     }
+
+    document.dispatchEvent(new CustomEvent('auth:state-change', { detail: { user } }));
 }
 
 // 绑定认证模态框的打开/关闭事件

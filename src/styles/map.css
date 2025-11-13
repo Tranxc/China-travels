@@ -133,6 +133,12 @@ html {
   background: #e0e0e0;
 }
 
+.user-auth-btn.is-authenticated {
+  color: #b77700;
+  font-weight: 600;
+  background: #fff5db;
+}
+
 #marker-info-panel {
   position: absolute;
   top: 60px;
